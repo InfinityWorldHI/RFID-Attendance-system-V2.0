@@ -1,0 +1,83 @@
+h1{
+  font-size: 28px !important;
+  color: #000;
+  text-transform: uppercase;
+  font-weight: 300;
+  font-family: New Century Schoolbook, TeX Gyre Schola, serif !important;
+  text-align: center;
+  margin: 15px !important;
+}
+th{
+  padding: 15px;
+  text-align: center !important;
+  font-weight: 500;
+  font-size: 19px;
+  color: #000;
+}
+td{
+  padding: 15px;
+  text-align: center;
+  font-weight: 300;
+  font-size: 17px;
+  color: #fff;
+  border-bottom: solid 2px rgba(255,255,255,0.1);
+}
+section {
+	display: block;
+	margin: 20px auto;
+}
+.panel {
+  border-color: #388994 !important;
+}
+.panel-heading {
+  background-color: #388994 !important;
+}
+.panel-body {
+  background-color: #46abb9 !important;
+}
+
+.mode_select {
+  display: block;
+  position: relative;
+}
+.mode_select input {
+  position: absolute !important;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  width: 1px;
+  border: 0;
+  overflow: hidden;
+}
+
+.mode_select label {
+  background-color: #46abb9;
+  color: #000;
+  font-size: 14px;
+  line-height: 1;
+  text-align: center;
+  padding: 6px 12px;
+  margin-right: -1px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  transition: all 0.1s ease-in-out;
+}
+
+.mode_select label:hover {
+  cursor: pointer;
+}
+
+.mode_select input:checked + label {
+  background-color: #5cb85c;
+  color: #fff;
+  box-shadow: none;
+}
+
+.alert_dev {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+.alert_dev_del {
+    position: absolute;
+    right: 20px;
+    height: 30px;
+}
