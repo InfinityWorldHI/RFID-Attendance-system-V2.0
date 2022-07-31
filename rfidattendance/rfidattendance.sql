@@ -1,31 +1,24 @@
 -- phpMyAdmin SQL Dump
--- version 4.8.4
+-- version 5.1.3
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Mar 06, 2020 at 03:47 PM
--- Server version: 10.1.37-MariaDB
--- PHP Version: 7.3.1
+-- Host: localhost:3306
+-- Erstellungszeit: 31. Jul 2022 um 22:56
+-- Server-Version: 10.5.16-MariaDB-1:10.5.16+maria~stretch
+-- PHP-Version: 7.4.29
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-
 --
--- Database: `rfidattendance`
+-- Datenbank: `web400001_arbeitszeit`
 --
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `admin`
+-- Tabellenstruktur für Tabelle `admin`
 --
 
 CREATE TABLE `admin` (
@@ -36,16 +29,16 @@ CREATE TABLE `admin` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `admin`
+-- Daten für Tabelle `admin`
 --
 
 INSERT INTO `admin` (`id`, `admin_name`, `admin_email`, `admin_pwd`) VALUES
-(1, 'Admin', 'admin@gmail.com', '$2y$10$89uX3LBy4mlU/DcBveQ1l.32nSianDP/E1MfUh.Z.6B4Z0ql3y7PK');
+(1, 'Admin', 'michael@michaelkrasselt.de', '$2y$10$Mw9kckJLkMH8IxW82t1.jOPpeomCpX.gPuZkG/BVksrP0kSSLq/dm');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `devices`
+-- Tabellenstruktur für Tabelle `devices`
 --
 
 CREATE TABLE `devices` (
@@ -54,33 +47,46 @@ CREATE TABLE `devices` (
   `device_dep` varchar(20) NOT NULL,
   `device_uid` text NOT NULL,
   `device_date` date NOT NULL,
-  `device_mode` tinyint(1) NOT NULL DEFAULT '0'
+  `device_mode` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `users`
+-- Tabellenstruktur für Tabelle `pwd_reset`
+--
+
+CREATE TABLE `pwd_reset` (
+  `pwd_reset_email` varchar(80) NOT NULL,
+  `pwd_reset_selector` varchar(16) NOT NULL,
+  `pwd_reset_token` varchar(64) NOT NULL,
+  `pwd_reset_expires` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `users`
 --
 
 CREATE TABLE `users` (
   `id` int(11) NOT NULL,
   `username` varchar(30) NOT NULL DEFAULT 'None',
-  `serialnumber` double NOT NULL DEFAULT '0',
+  `serialnumber` double NOT NULL DEFAULT 0,
   `gender` varchar(10) NOT NULL DEFAULT 'None',
   `email` varchar(50) NOT NULL DEFAULT 'None',
   `card_uid` varchar(30) NOT NULL,
-  `card_select` tinyint(1) NOT NULL DEFAULT '0',
+  `card_select` tinyint(1) NOT NULL DEFAULT 0,
   `user_date` date NOT NULL,
   `device_uid` varchar(20) NOT NULL DEFAULT '0',
   `device_dep` varchar(20) NOT NULL DEFAULT '0',
-  `add_card` tinyint(1) NOT NULL DEFAULT '0'
+  `add_card` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `users_logs`
+-- Tabellenstruktur für Tabelle `users_logs`
 --
 
 CREATE TABLE `users_logs` (
@@ -93,66 +99,62 @@ CREATE TABLE `users_logs` (
   `checkindate` date NOT NULL,
   `timein` time NOT NULL,
   `timeout` time NOT NULL,
-  `card_out` tinyint(1) NOT NULL DEFAULT '0'
+  `card_out` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Indexes for dumped tables
+-- Indizes der exportierten Tabellen
 --
 
 --
--- Indexes for table `admin`
+-- Indizes für die Tabelle `admin`
 --
 ALTER TABLE `admin`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `devices`
+-- Indizes für die Tabelle `devices`
 --
 ALTER TABLE `devices`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `users`
+-- Indizes für die Tabelle `users`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `users_logs`
+-- Indizes für die Tabelle `users_logs`
 --
 ALTER TABLE `users_logs`
   ADD PRIMARY KEY (`id`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT für exportierte Tabellen
 --
 
 --
--- AUTO_INCREMENT for table `admin`
+-- AUTO_INCREMENT für Tabelle `admin`
 --
 ALTER TABLE `admin`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT for table `devices`
+-- AUTO_INCREMENT für Tabelle `devices`
 --
 ALTER TABLE `devices`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `users`
+-- AUTO_INCREMENT für Tabelle `users`
 --
 ALTER TABLE `users`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `users_logs`
+-- AUTO_INCREMENT für Tabelle `users_logs`
 --
 ALTER TABLE `users_logs`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
