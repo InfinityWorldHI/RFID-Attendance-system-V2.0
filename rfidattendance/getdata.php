@@ -54,18 +54,15 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                                     //*****************************************************
                                     //Login
                                     if (!$row = mysqli_fetch_assoc($resultl)){
-
-                                        $sql = "INSERT INTO users_logs (username, serialnumber, card_uid, device_uid, device_dep, checkindate, timein, timeout) VALUES (? ,?, ?, ?, ?, ?, ?, ?)";
-                                        $result = mysqli_stmt_init($conn);
-                                        if (!mysqli_stmt_prepare($result, $sql)) {
+                                        $timeout = "00:00:00";
+                                        $sql = "INSERT INTO users_logs (username, serialnumber, card_uid, device_uid, device_dep, checkindate, timein, timeout) 
+                                                VALUES ($Uname ,$Number, $card_uid, $device_uid, $device_dep, $d, $t, $timeout)";
+                                        $result = $conn->query($sql);
+                                        if (!$conn->num_rows) {
                                             echo "SQL_Error_Select_login1";
                                             exit();
                                         }
                                         else{
-                                            $timeout = "00:00:00";
-                                            mysqli_stmt_bind_param($result, "sdssssss", $Uname, $Number, $card_uid, $device_uid, $device_dep, $d, $t, $timeout);
-                                            mysqli_stmt_execute($result);
-
                                             echo "login".$Uname;
                                             exit();
                                         }
@@ -73,16 +70,13 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                                     //*****************************************************
                                     //Logout
                                     else{
-                                        $sql="UPDATE users_logs SET timeout=?, card_out=1 WHERE card_uid=? AND checkindate=? AND card_out=0";
-                                        $result = mysqli_stmt_init($conn);
-                                        if (!mysqli_stmt_prepare($result, $sql)) {
+                                        $sql="UPDATE users_logs SET timeout=$t, card_out=1 WHERE card_uid=$card_uid AND checkindate=$d AND card_out=0";
+                                        $result = $conn->query($sql);
+                                        if (!$conn->num_rows) {
                                             echo "SQL_Error_insert_logout1";
                                             exit();
                                         }
                                         else{
-                                            mysqli_stmt_bind_param($result, "sss", $t, $card_uid, $d);
-                                            mysqli_stmt_execute($result);
-
                                             echo "logout".$Uname;
                                             exit();
                                         }
