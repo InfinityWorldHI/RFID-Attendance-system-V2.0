@@ -58,7 +58,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                                         $sql = "INSERT INTO users_logs (username, serialnumber, card_uid, device_uid, device_dep, checkindate, timein, timeout) 
                                                 VALUES ($Uname ,$Number, $card_uid, $device_uid, $device_dep, $d, $t, $timeout)";
                                         $result = $conn->query($sql);
-                                        if (!$conn->num_rows) {
+                                        if (!$result) {
                                             echo "SQL_Error_Select_login1";
                                             exit();
                                         }
@@ -72,7 +72,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                                     else{
                                         $sql="UPDATE users_logs SET timeout=$t, card_out=1 WHERE card_uid=$card_uid AND checkindate=$d AND card_out=0";
                                         $result = $conn->query($sql);
-                                        if (!$conn->num_rows) {
+                                        if (!$result) {
                                             echo "SQL_Error_insert_logout1";
                                             exit();
                                         }
