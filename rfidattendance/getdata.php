@@ -1,9 +1,8 @@
 <?php  
 //Connect to database
 require 'connectDB.php';
-date_default_timezone_set('Asia/Damascus');
 $d = date("Y-m-d");
-$t = date("H:i:sa");
+$t = date("H:i:s");
 
 if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
     
@@ -56,7 +55,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                                     if (!$row = mysqli_fetch_assoc($resultl)){
                                         $timeout = "00:00:00";
                                         $sql = "INSERT INTO users_logs (username, serialnumber, card_uid, device_uid, device_dep, checkindate, timein, timeout) 
-                                                VALUES ($Uname ,$Number, $card_uid, $device_uid, $device_dep, $d, $t, $timeout)";
+                                                VALUES ('$Uname' ,'$Number', '$card_uid', '$device_uid', '$device_dep', '$d', '$t', '$timeout')";
                                         $result = $conn->query($sql);
                                         if ($result === TRUE) {
                                             echo "login".$Uname;
@@ -70,7 +69,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                                     //*****************************************************
                                     //Logout
                                     else{
-                                        $sql="UPDATE users_logs SET timeout=$t, card_out=1 WHERE card_uid=$card_uid AND checkindate=$d AND card_out=0";
+                                        $sql="UPDATE users_logs SET timeout='$t', card_out=1 WHERE card_uid='$card_uid' AND checkindate='$d' AND card_out=0";
                                         $result = $conn->query($sql);
                                         if ($result === TRUE) {
                                             echo "logout".$Uname;
