@@ -73,8 +73,7 @@ if ($card_uid && $device_token) {
                 if ($result->num_rows == 1) {
                     echo "available";
                 }
-            }
-            if ($result->num_rows == 0) {
+            }else if ($result->num_rows == 0) {
                 //The Card is new
                 $result = $conn->query("INSERT INTO users (card_uid, card_select, device_uid, device_dep, user_date) 
                                         VALUES ('$card_uid', 1, '$device_uid', '$device_dep', CURDATE())");
