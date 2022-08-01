@@ -19,7 +19,7 @@ if ($card_uid && $device_token) {
         //check device mode
         if ($device_mode == 1) {
             //search db for user
-            $result = $conn->query("SELECT * FROM users WHERE card_uid = $card_uid");
+            $result = $conn->query("SELECT * FROM users WHERE card_uid = '$card_uid'");
             if ($result->num_rows == 1) {
 
                 $row = mysqli_fetch_assoc($result);
@@ -53,13 +53,13 @@ if ($card_uid && $device_token) {
                             }
                         }
                     } else {
-                        echo "Not Allowed!";
+                        echo "Error: Not Allowed!";
                     }
                 } else { //if ($row['add_card'] == 0) {
-                    echo "Not registerd!";
+                    echo "Error: Not registerd!";
                 }
             } else {
-                echo "Not found!";
+                echo "Error: Not found!";
             }
         } else if ($device_mode == 0) {
             $conn->query("UPDATE users SET card_select=0 WHERE card_select=1"); //deselect previous
