@@ -60,7 +60,7 @@ if (isset($_POST['Add'])) {
                             $sql="UPDATE users SET username=?, serialnumber=?, gender=?, email=?, user_date=CURDATE(), device_uid=?, device_dep=?, add_card=1 WHERE id=?";
                             $result = mysqli_stmt_init($conn);
                             if (!mysqli_stmt_prepare($result, $sql)) {
-                                echo "SQL_Error_select_Fingerprint";
+                                echo "Error_SQL_select_Fingerprint";
                                 exit();
                             }
                             else{
@@ -161,7 +161,7 @@ if (isset($_POST['Update'])) {
                                 $sql="UPDATE users SET username=?, serialnumber=?, gender=?, email=?, device_uid=?, device_dep=? WHERE id=?";
                                 $result = mysqli_stmt_init($conn);
                                 if (!mysqli_stmt_prepare($result, $sql)) {
-                                    echo "SQL_Error_select_Card";
+                                    echo "Error_SQL_select_Card";
                                     exit();
                                 }
                                 else{
@@ -195,7 +195,7 @@ if (isset($_GET['select'])) {
     $sql = "SELECT * FROM users WHERE card_uid=?";
     $result = mysqli_stmt_init($conn);
     if (!mysqli_stmt_prepare($result, $sql)) {
-        echo "SQL_Error_Select";
+        echo "Error_SQL_Select";
         exit();
     }
     else{
@@ -228,7 +228,7 @@ if (isset($_POST['delete'])) {
         $sql = "DELETE FROM users WHERE id=?";
         $result = mysqli_stmt_init($conn);
         if (!mysqli_stmt_prepare($result, $sql)) {
-            echo "SQL_Error_delete";
+            echo "Error_SQL_delete";
             exit();
         }
         else{

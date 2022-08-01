@@ -12,7 +12,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
     $sql = "SELECT * FROM devices WHERE device_uid=?";
     $result = mysqli_stmt_init($conn);
     if (!mysqli_stmt_prepare($result, $sql)) {
-        echo "SQL_Error_Select_device";
+        echo "Error_SQL_Select_device";
         exit();
     }
     else{
@@ -26,7 +26,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                 $sql = "SELECT * FROM users WHERE card_uid=?";
                 $result = mysqli_stmt_init($conn);
                 if (!mysqli_stmt_prepare($result, $sql)) {
-                    echo "SQL_Error_Select_card";
+                    echo "Error_SQL_Select_card";
                     exit();
                 }
                 else{
@@ -43,7 +43,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                                 $sql = "SELECT * FROM users_logs WHERE card_uid=? AND checkindate=? AND card_out=0";
                                 $result = mysqli_stmt_init($conn);
                                 if (!mysqli_stmt_prepare($result, $sql)) {
-                                    echo "SQL_Error_Select_logs";
+                                    echo "Error_SQL_Select_logs";
                                     exit();
                                 }
                                 else{
@@ -62,7 +62,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                                             exit();
                                         }
                                         else{
-                                            echo "SQL_Error_Select_login1";
+                                            echo "Error_SQL_Select_login1";
                                             exit();
                                         }
                                     }
@@ -76,7 +76,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                                             exit();
                                         }
                                         else{
-                                            echo "SQL_Error_insert_logout1";
+                                            echo "Error_SQL_insert_logout1";
                                             exit();
                                         }
                                     }
@@ -103,7 +103,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                 $sql = "SELECT * FROM users WHERE card_uid=?";
                 $result = mysqli_stmt_init($conn);
                 if (!mysqli_stmt_prepare($result, $sql)) {
-                    echo "SQL_Error_Select_card";
+                    echo "Error_SQL_Select_card";
                     exit();
                 }
                 else{
@@ -115,7 +115,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                         $sql = "SELECT card_select FROM users WHERE card_select=1";
                         $result = mysqli_stmt_init($conn);
                         if (!mysqli_stmt_prepare($result, $sql)) {
-                            echo "SQL_Error_Select";
+                            echo "Error_SQL_Select";
                             exit();
                         }
                         else{
@@ -126,7 +126,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                                 $sql="UPDATE users SET card_select=0";
                                 $result = mysqli_stmt_init($conn);
                                 if (!mysqli_stmt_prepare($result, $sql)) {
-                                    echo "SQL_Error_insert";
+                                    echo "Error_SQL_insert";
                                     exit();
                                 }
                                 else{
@@ -135,7 +135,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                                     $sql="UPDATE users SET card_select=1 WHERE card_uid=?";
                                     $result = mysqli_stmt_init($conn);
                                     if (!mysqli_stmt_prepare($result, $sql)) {
-                                        echo "SQL_Error_insert_An_available_card";
+                                        echo "Error_SQL_insert_An_available_card";
                                         exit();
                                     }
                                     else{
@@ -151,7 +151,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                                 $sql="UPDATE users SET card_select=1 WHERE card_uid=?";
                                 $result = mysqli_stmt_init($conn);
                                 if (!mysqli_stmt_prepare($result, $sql)) {
-                                    echo "SQL_Error_insert_An_available_card";
+                                    echo "Error_SQL_insert_An_available_card";
                                     exit();
                                 }
                                 else{
@@ -169,7 +169,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                         $sql="UPDATE users SET card_select=0";
                         $result = mysqli_stmt_init($conn);
                         if (!mysqli_stmt_prepare($result, $sql)) {
-                            echo "SQL_Error_insert";
+                            echo "Error_SQL_insert";
                             exit();
                         }
                         else{
@@ -177,7 +177,7 @@ if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
                             $sql = "INSERT INTO users (card_uid, card_select, device_uid, device_dep, user_date) VALUES (?, 1, ?, ?, CURDATE())";
                             $result = mysqli_stmt_init($conn);
                             if (!mysqli_stmt_prepare($result, $sql)) {
-                                echo "SQL_Error_Select_add";
+                                echo "Error_SQL_Select_add";
                                 exit();
                             }
                             else{

@@ -46,8 +46,10 @@ String OldCardID;
 int timezone = 2;
 int time_dst = 0;
 
-char device_token[30] = "0123456789ABCDEF";
-char backend_server[100] = "https://server.example/getdata.php";
+// char device_token[30] = "0123456789ABCDEF";
+// char backend_server[100] = "https://server.example/getdata.php";
+char device_token[30] = "edef1be818c35345";
+char backend_server[100] = "https://arbeitszeit.kaffeeteam.de/getdata.php";
 char time_server[30] = "pool.ntp.org";
 
 WiFiManagerParameter custom_time_server("time_server", "time server", time_server, 30);
@@ -156,7 +158,18 @@ void SendCardID(String Card_uid)
       }
       delay(100);
       http.end(); // Close connection
-    }
+    }else if (payload.substring(0, 6) == "Error_")
+      {
+        String errorMessage = payload;
+        Serial.println(errorMessage);
+
+        display.clearDisplay();
+        display.setTextSize(2);      // Normal 2:2 pixel scale
+        display.setTextColor(WHITE); // Draw white text
+        display.setCursor(0, 0);    // Start at top-left corner
+        display.print(errorMessage);
+        display.display();
+      }
   }
 }
 //=======================================================================
