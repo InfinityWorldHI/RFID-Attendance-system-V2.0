@@ -4,13 +4,13 @@ require 'connectDB.php';
 $d = date("Y-m-d");
 $t = date("H:i:s");
 
-$device = filter_input(INPUT_GET, "device_token",  FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/\A[[:xdigit:]]{16}\z/']]);
-$card = filter_input(INPUT_GET, "card_uid",  FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/\A[[:xdigit:]]{8,32}\z/']]);
+$device_token = filter_input(INPUT_GET, "device_token",  FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/\A[[:xdigit:]]{16}\z/']]);
+$card_uid = filter_input(INPUT_GET, "card_uid",  FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/\A[[:xdigit:]]{8,32}\z/']]);
 
 //Check given Data
-if ($card && $device) {
+if ($card_uid && $device_token) {
     //search db for device
-    $result = $conn->query("SELECT * FROM devices WHERE device_uid = '$device'");
+    $result = $conn->query("SELECT * FROM devices WHERE device_uid = '$device_token'");
     if ($result->num_rows == 1) {
         $row = $result->fetch_assoc();
         //extract($row);
