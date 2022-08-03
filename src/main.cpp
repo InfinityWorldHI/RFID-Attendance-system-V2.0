@@ -47,16 +47,15 @@ String OldCardID;
 int timezone = 2;
 int time_dst = 0;
 
-char device_token[30] = "0123456789ABCDEF";
+char device_token[17] = "0123456789ABCDEF";
 char backend_server[100] = "https://server.example/getdata.php";
 char time_server[30] = "pool.ntp.org";
 
 WiFiManagerParameter custom_time_server("time_server", "time server", time_server, 30);
 WiFiManagerParameter custom_backend_server("backend_server", "backend server", backend_server, 100);
-WiFiManagerParameter custom_device_token("device_token", "device token", device_token, 30);
+WiFiManagerParameter custom_device_token("device_token", "device token", device_token, 17);
 
 WiFiClientSecure client;
-
 
 //********************connect to the WiFi******************
 void displayReady()
@@ -88,14 +87,14 @@ void SendCardID(String Card_uid)
     temp_url.concat(device_token); // Add the Card ID to the GET array in order to send it
 
     // GET method
-    http.begin(temp_url); // initiate HTTP request
+    http.begin(temp_url);              // initiate HTTP request
     int httpCode = http.GET();         // Send the request
     String payload = http.getString(); // Get the response payload
 
     // Serial.println(Link);   //Print HTTP return code
     // Serial.println(httpCode); // Print HTTP return code
     // Serial.println(Card_uid); // Print Card ID
-    Serial.println(payload);  // Print request response payload
+    Serial.println(payload); // Print request response payload
 
     if (httpCode == 200)
     {
@@ -157,18 +156,19 @@ void SendCardID(String Card_uid)
       }
       delay(100);
       http.end(); // Close connection
-    }else if (payload.substring(0, 6) == "Error_")
-      {
-        String errorMessage = payload;
-        Serial.println(errorMessage);
+    }
+    else if (payload.substring(0, 6) == "Error_")
+    {
+      String errorMessage = payload;
+      Serial.println(errorMessage);
 
-        display.clearDisplay();
-        display.setTextSize(2);      // Normal 2:2 pixel scale
-        display.setTextColor(WHITE); // Draw white text
-        display.setCursor(0, 0);    // Start at top-left corner
-        display.print(errorMessage);
-        display.display();
-      }
+      display.clearDisplay();
+      display.setTextSize(2);      // Normal 2:2 pixel scale
+      display.setTextColor(WHITE); // Draw white text
+      display.setCursor(0, 0);     // Start at top-left corner
+      display.print(errorMessage);
+      display.display();
+    }
   }
 }
 //=======================================================================
@@ -178,7 +178,22 @@ void SendCardID(String Card_uid)
 void saveConfigCallback()
 {
   Serial.println("config shall be saved");
-  shouldSaveConfig = true;
+  DynamicJsonDocument json(1024);
+  json["time_server"] = custom_time_server.getValue();
+  json["backend_server"] = custom_backend_server.getValue();
+  json["device_token"] = custom_device_token.getValue();
+
+  File configFile = SPIFFS.open("/config.json", "w");
+  if (!configFile)
+  {
+    Serial.println("failed to open config file for writing");
+  }
+
+  serializeJson(json, Serial);
+  serializeJson(json, configFile);
+  configFile.close();
+  ESP.restart();
+  // end save
 }
 //=======================================================================
 
@@ -318,6 +333,7 @@ void setup()
   {
     Serial.println("failed to mount FS");
     SPIFFS.format();
+    Serial.println("FS formated");
     ESP.restart();
   }
   // end read
