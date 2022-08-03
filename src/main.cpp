@@ -116,6 +116,7 @@ void SendCardID(String Card_uid)
         display.setCursor(0, 20);
         display.print(user_name);
         display.display();
+        delay(3000);
       }
       else if (payload.substring(0, 6) == "logout")
       {
@@ -131,10 +132,11 @@ void SendCardID(String Card_uid)
         display.setTextSize(2);      // Normal 2:2 pixel scale
         display.setTextColor(WHITE); // Draw white text
         display.setCursor(0, 0);
-        display.print("Tschüss");
+        display.print("Tschuess");
         display.setCursor(0, 20);
         display.print(user_name);
         display.display();
+        delay(3000);
       }
       else if (payload == "succesful")
       {
