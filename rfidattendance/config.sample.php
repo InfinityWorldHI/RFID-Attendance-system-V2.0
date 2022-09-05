@@ -9,6 +9,7 @@ return [
     ],
     "admin" => [
         "email" => "admin@localhost",
+        "name" => "Admins Name"
     ]
 
 ];
