@@ -112,7 +112,7 @@ void SendCardID(String Card_uid)
         display.setTextSize(2);      // Normal 2:2 pixel scale
         display.setTextColor(WHITE); // Draw white text
         display.setCursor(0, 0);
-        display.print("Wilkommen");
+        display.print("Willkommen");
         display.setCursor(0, 20);
         display.print(user_name);
         display.display();
@@ -138,7 +138,7 @@ void SendCardID(String Card_uid)
         display.display();
         delay(3000);
       }
-      else if (payload == "succesful")
+      else if (payload == "successful")
       {
         display.clearDisplay();
         display.setTextSize(2);      // Normal 2:2 pixel scale
@@ -159,7 +159,7 @@ void SendCardID(String Card_uid)
       delay(100);
       http.end(); // Close connection
     }
-    else if (payload.substring(0, 6) == "Error_")
+    else if (payload.substring(0, 6) == "Error:")
     {
       String errorMessage = payload;
       Serial.println(errorMessage);
