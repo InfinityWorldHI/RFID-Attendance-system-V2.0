@@ -42,7 +42,7 @@ if (isset($_POST)) {
         $messages[] = ["mode" => "danger", "message" => "konnte Änderungen nicht speichern"];
         var_dump(mysqli_error($conn));
       }else{
-        $messages[] = ["mode" => "success", "message" => "Link wurde versand"];
+        $messages[] = ["mode" => "success", "message" => "Link wurde Versand"];
       }
     }
   } else if (isset($_POST["reset"])) {
@@ -74,9 +74,9 @@ $title = "Passwort zurücksetzen";
 ob_start();
 ?>
 <?php if ($token) : ?>
-  <h1>Please, Insert your new Password</h1>
+  <h1>Bitte neues Password eingeben</h1>
 <?php else : ?>
-  <h1>Please, Enter your Email to send the reset password link</h1>
+  <h1>Geben Sie Ihre E-Mailadresse ein, um ein neues Password anzufordern</h1>
 <?php endif; ?>
 
 <section class="container">
