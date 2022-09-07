@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Erstellungszeit: 31. Jul 2022 um 22:56
+-- Erstellungszeit: 07. Sep 2022 um 23:44
 -- Server-Version: 10.5.16-MariaDB-1:10.5.16+maria~stretch
 -- PHP-Version: 7.4.29
 
@@ -25,15 +25,17 @@ CREATE TABLE `admin` (
   `id` int(11) NOT NULL,
   `admin_name` varchar(30) NOT NULL,
   `admin_email` varchar(80) NOT NULL,
-  `admin_pwd` longtext NOT NULL
+  `admin_pwd` longtext NOT NULL,
+  `admin_passwd_reset_token` char(64) NOT NULL,
+  `admin_passwd_reset_timeout` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Daten für Tabelle `admin`
 --
 
-INSERT INTO `admin` (`id`, `admin_name`, `admin_email`, `admin_pwd`) VALUES
-(1, 'Admin', 'michael@michaelkrasselt.de', '$2y$10$Mw9kckJLkMH8IxW82t1.jOPpeomCpX.gPuZkG/BVksrP0kSSLq/dm');
+INSERT INTO `admin` (`id`, `admin_name`, `admin_email`, `admin_pwd`, `admin_passwd_reset_token`, `admin_passwd_reset_timeout`) VALUES
+(1, 'Admin', 'admin@example.de', '$2y$10$hVX3T50Iz98WE4Dd4bckQOzBtW34Kwc54Cem.aFwPvwaLyrevRU0e', '', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -45,7 +47,7 @@ CREATE TABLE `devices` (
   `id` int(11) NOT NULL,
   `device_name` varchar(50) NOT NULL,
   `device_dep` varchar(20) NOT NULL,
-  `device_uid` text NOT NULL,
+  `device_uid` char(16) DEFAULT NULL,
   `device_date` date NOT NULL,
   `device_mode` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -116,13 +118,15 @@ ALTER TABLE `admin`
 -- Indizes für die Tabelle `devices`
 --
 ALTER TABLE `devices`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `device_uid` (`device_uid`);
 
 --
 -- Indizes für die Tabelle `users`
 --
 ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `card_uid` (`card_uid`);
 
 --
 -- Indizes für die Tabelle `users_logs`

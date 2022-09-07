@@ -1,104 +1,225 @@
 <?php
-session_start();
+include "connectDB.php";
+
 if (!isset($_SESSION['Admin-name'])) {
-  header("location: login.php");
+	header("location: login.php");
 }
+
+$all_users = getAllActiveUsers();
+
+//Output Stage
+$title = "Nutzer Verwalten";
+$css_extra = "css/Manage_Users.css";
+ob_start();
+// <script src="js/manage_users.js"></script>
 ?>
-<!DOCTYPE html>
-<html>
-<head>
-	<title>Manage Users</title>
-  	<meta charset="utf-8">
-  	<meta name="viewport" content="width=device-width, initial-scale=1">
-  	<link rel="icon" type="image/png" href="images/favicon.png">
-	<link rel="stylesheet" type="text/css" href="css/manageusers.css">
-
-    <script type="text/javascript" src="js/jquery-2.2.3.min.js"></script>
-	<script src="https://code.jquery.com/jquery-3.3.1.js"
-	        integrity="sha1256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
-	        crossorigin="anonymous">
-	</script>
-    <script type="text/javascript" src="js/bootbox.min.js"></script>
-	<script type="text/javascript" src="js/bootstrap.js"></script>
-	<script src="js/manage_users.js"></script>
-	<script>
-	  	$(window).on("load resize ", function() {
-		    var scrollWidth = $('.tbl-content').width() - $('.tbl-content table').width();
-		    $('.tbl-header').css({'padding-right':scrollWidth});
-		}).resize();
-	</script>
-	<script>
-	  $(document).ready(function(){
-	  	  $.ajax({
-	        url: "manage_users_up.php"
-	        }).done(function(data) {
-	        $('#manage_users').html(data);
-	      });
-	    setInterval(function(){
-	      $.ajax({
-	        url: "manage_users_up.php"
-	        }).done(function(data) {
-	        $('#manage_users').html(data);
-	      });
-	    },5000);
-	  });
-	</script>
-</head>
-<body>
-<?php include'header.php';?>
-<main>
-	<h1 class="slideInDown animated">Add a new User or update his information <br> or remove him</h1>
-	<div class="form-style-5 slideInDown animated">
-		<form enctype="multipart/form-data">
-			<div class="alert_user"></div>
-			<fieldset>
-				<legend><span class="number">1</span> User Info</legend>
-				<input type="hidden" name="user_id" id="user_id">
-				<input type="text" name="name" id="name" placeholder="User Name...">
-				<input type="text" name="number" id="number" placeholder="Serial Number...">
-				<input type="email" name="email" id="email" placeholder="User Email...">
-			</fieldset>
-			<fieldset>
-			<legend><span class="number">2</span> Additional Info</legend>
+<h1>Füge Nutzer hinzu oder ändere Sie</h1>
+<div class="form-style-5 slideInDown animated">
+	<form enctype="multipart/form-data" id="user_form">
+		<div class="alert_user"></div>
+		<fieldset>
+			<legend><span class="number">1</span> Infos</legend>
+			<input type="hidden" name="user_id" id="user_id">
+			<input type="text" name="user_username" id="user_username" placeholder="Nutzername">
+			<input type="number" name="user_serialnumber" id="user_serialnumber" placeholder="Laufende Nummer">
+			<input type="email" name="user_email" id="user_email" placeholder="E-Mail...">
+		</fieldset>
+		<fieldset>
+			<legend><span class="number">2</span> Erweitert</legend>
 			<label>
-				<label for="Device"><b>User Department:</b></label>
-                    <select class="dev_sel" name="dev_sel" id="dev_sel" style="color: #000;">
-                      <option value="0">All Departments</option>
-                      <?php
-                        require'connectDB.php';
-                        $sql = "SELECT * FROM devices ORDER BY device_name ASC";
-                        $result = mysqli_stmt_init($conn);
-                        if (!mysqli_stmt_prepare($result, $sql)) {
-                            echo '<p class="error">SQL Error</p>';
-                        } 
-                        else{
-                            mysqli_stmt_execute($result);
-                            $resultl = mysqli_stmt_get_result($result);
-                            while ($row = mysqli_fetch_assoc($resultl)){
-                      ?>
-                              <option value="<?php echo $row['device_uid'];?>"><?php echo $row['device_dep']; ?></option>
-                      <?php
-                            }
-                        }
-                      ?>
-                    </select>
-				<input type="radio" name="gender" class="gender" value="Female">Female
-	          	<input type="radio" name="gender" class="gender" value="Male" checked="checked">Male
-	      	</label >
-			</fieldset>
-			<button type="button" name="user_add" class="user_add">Add User</button>
-			<button type="button" name="user_upd" class="user_upd">Update User</button>
-			<button type="button" name="user_rmo" class="user_rmo">Remove User</button>
-		</form>
-	</div>
-
-	<!--User table-->
-	<div class="section">
-		
-		<div class="slideInRight animated">
-			<div id="manage_users"></div>
+				<label for="Device"><b>Nutzer Abteilung:</b></label>
+				<select class="dev_sel" name="user_device_dep" id="user_device_dep" style="color: #000;">
+					<option value="All">Alle Abteilungen</option>
+					<?php
+					foreach (getAllDepartments() as $department) {
+						echo "					<option value=\"" . $department . "\">" . $department . "</option>\r\n";
+					}
+					?>
+				</select>
+				<input type="radio" name="user_gender" class="gender" value="Female">Frau
+				<input type="radio" name="user_gender" class="gender" value="Male">Mann
+			</label>
+		</fieldset>
+		<button type="button" name="user_add" class="user_add">Nutzer Hinzufügen</button>
+		<button type="button" name="user_upd" class="user_upd">Nutzer Speichern</button>
+		<button type="button" name="user_rmo" class="user_rmo">Nutzer Entfernen</button>
+	</form>
+</div>
+<!--User table-->
+<div class="section">
+	<div>
+		<div class="table-responsive-sm" style="max-height: 870px;">
+			<table class="table">
+				<thead class="table-primary">
+					<tr>
+						<th>Card UID</th>
+						<th>Name</th>
+						<th>Gender</th>
+						<th>S.No</th>
+						<th>Date</th>
+						<th>Department</th>
+					</tr>
+				</thead>
+				<tbody id="manage_users"></tbody>
+			</table>
 		</div>
 	</div>
-</main>
-</body>
-</html>
+</div>
+</div>
+<script>
+	function selectUser(card_id) {
+		$.ajax({
+			type: 'POST',
+			url: "manage_users_conf.php",
+			dataType: 'json',
+			data: JSON.stringify({
+				method: "select",
+				data: {
+					card_id: card_id
+				}
+			}),
+			success: (data) => {
+				loadUser(data);
+				loadUsers();
+			},
+			statusCode: {
+				503: function() {
+					window.location.href = "login.php";
+				}
+			}
+		});
+	}
+
+	function loadUser(data) {
+		$('#user_id').val(data.id);
+		$("#user_username").val(data.username);
+		$("#user_serialnumber").val(data.serialnumber);
+		$("#user_email").val(data.email);
+		$("#user_device_dep").val(data.device_dep).change();
+		$("input:radio[name=user_gender]").val([data.gender]).change();
+	}
+
+	function saveUser() {
+		let user_data = {
+			id: $('#user_id').val(),
+			username: $("#user_username").val(),
+			serialnumber: $("#user_serialnumber").val(),
+			email: $("#user_email").val(),
+			device_dep: $("#user_device_dep").val(),
+			gender: $('input[name=user_gender]:checked', '#user_form').val()
+		};
+		$.ajax({
+			type: 'POST',
+			url: "manage_users_conf.php",
+			dataType: 'json',
+			data: JSON.stringify({
+				method: "update",
+				data: user_data
+			}),
+			success: (data) => {
+				loadUsers();
+			},
+			statusCode: {
+				503: function() {
+					window.location.href = "login.php";
+				}
+			}
+		});
+	}
+
+	function addUser() {
+		let user_data = {
+			id: $('#user_id').val(),
+			username: $("#user_username").val(),
+			serialnumber: $("#user_serialnumber").val(),
+			email: $("#user_email").val(),
+			device_dep: $("#user_device_dep").val(),
+			gender: $('input[name=user_gender]:checked', '#user_form').val()
+		};
+		$.ajax({
+			type: 'POST',
+			url: "manage_users_conf.php",
+			dataType: 'json',
+			data: JSON.stringify({
+				method: "add",
+				data: user_data
+			}),
+			success: (data) => {
+				loadUsers();
+			},
+			statusCode: {
+				503: function() {
+					window.location.href = "login.php";
+				}
+			}
+		});
+	}
+
+	function removeUser() {
+		if (confirm("Nutzer wirklich löschen ?")) {
+			$.ajax({
+				type: 'POST',
+				url: "manage_users_conf.php",
+				dataType: 'json',
+				data: JSON.stringify({
+					method: "remove",
+					data: {
+						id: $('#user_id').val(),
+					}
+				}),
+				success: (data) => {
+					loadUsers();
+				},
+				statusCode: {
+					503: function() {
+						window.location.href = "login.php";
+					}
+				}
+			});
+		}
+	}
+
+	$("button[name=user_add]").click(() => {
+		addUser();
+	});
+	$("button[name=user_upd]").click(() => {
+		saveUser();
+	});
+	$("button[name=user_rmo]").click(() => {
+		removeUser();
+	});
+
+	function loadUsers(force = false) {
+		$.getJSON("user_list.php", (data_users) => {
+			if ($("#manage_users").children().length == 0 || force) {
+				let selected_user = data_users.find((user) => {
+					return user.card_select;
+				});
+				if (selected_user != undefined) {
+					selectUser(selected_user.card_uid);
+				}
+			}
+			$("#manage_users").loadTemplate("template/user_table_manage.html", data_users);
+		});
+	}
+	$().ready(() => {
+		$.addTemplateFormatter({
+			selectIcon: function(value, template) {
+				if (value == 1) {
+					return "<span><i class='fa fa-check' title='The selected UID'></i></span>";
+				}
+				return "";
+			},
+			editButton: function(value, template) {
+				return '<button type="button" class="select_btn" onClick="selectUser(\'' + value + '\');" title="select this UID">' + value + '</button>';
+			}
+		});
+		loadUsers(true);
+		setInterval(() => {
+			loadUsers();
+		}, 5000);
+	});
+</script>
+<?php
+$html = ob_get_clean();
+include "template/index.phtml"; ?>

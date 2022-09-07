@@ -126,7 +126,7 @@ void SendCardID(String Card_uid)
         display.clearDisplay();
         display.drawBitmap(5, 15, checkout_bits, CheckInOut_width, CheckInOut_height, WHITE);
         display.display();
-        delay(3000);
+        delay(1000);
 
         display.clearDisplay();
         display.setTextSize(2);      // Normal 2:2 pixel scale
@@ -136,7 +136,7 @@ void SendCardID(String Card_uid)
         display.setCursor(0, 20);
         display.print(user_name);
         display.display();
-        delay(3000);
+        delay(2000);
       }
       else if (payload == "successful")
       {
@@ -157,7 +157,6 @@ void SendCardID(String Card_uid)
         display.display();
       }
       delay(100);
-      http.end(); // Close connection
     }
     else if (payload.substring(0, 6) == "Error:")
     {
@@ -171,6 +170,10 @@ void SendCardID(String Card_uid)
       display.print(errorMessage);
       display.display();
     }
+    else{
+      Serial.println(payload);
+    }
+    http.end(); // Close connection
   }
 }
 //=======================================================================

@@ -73,12 +73,6 @@ h1{
   width: 100%;
   text-align: center;
 }
-#reset{
-  display: none;
-}
-.form .reset-form {
-  display: none;
-}
 .container { 
   position: relative;
   z-index: 1;
