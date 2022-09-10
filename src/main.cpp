@@ -39,6 +39,7 @@ MFRC522 mfrc522(5, 15); // Create MFRC522 instance.
 unsigned long previousMillis1 = 0;
 unsigned long previousMillis2 = 0;
 unsigned long previousMillis3 = 0;
+unsigned long lastCardTime = 0;
 bool shouldSaveConfig = false;
 String OldCardID;
 
@@ -57,19 +58,24 @@ WiFiManagerParameter custom_device_token("device_token", "device token", device_
 
 WiFiClientSecure client;
 
-//********************connect to the WiFi******************
-void displayReady()
+enum CardStates
 {
-  Serial.println("device ready");
-  display.clearDisplay();
-  display.setTextSize(2);      // Normal 1:1 pixel scale
-  display.setTextColor(WHITE); // Draw white text
-  display.setCursor(8, 0);     // Start at top-left corner
-  display.print(F("Connected \n"));
-  display.drawBitmap(33, 15, Wifi_connected_bits, Wifi_connected_width, Wifi_connected_height, WHITE);
-  display.display();
-  delay(1000);
-}
+  IDLE,
+  DEVICE_READY,
+  CARD_SEND,
+  LOGIN_PICTURE,
+  LOGIN_NAME,
+  LOGOUT_PICTURE,
+  LOGOUT_NAME,
+  TIME,
+  CARD_ADD,
+  CARD_FREE
+};
+String Card_Message = "";
+String newRfidId = "";
+long display_timeout = 0;
+CardStates CardResult = IDLE;
+
 //=======================================================================
 //************send the Card UID to the website*************
 void SendCardID(String Card_uid)
@@ -94,67 +100,28 @@ void SendCardID(String Card_uid)
     // Serial.println(Link);   //Print HTTP return code
     // Serial.println(httpCode); // Print HTTP return code
     // Serial.println(Card_uid); // Print Card ID
+    lastCardTime = millis();
     Serial.println(payload); // Print request response payload
 
     if (httpCode == 200)
     {
       if (payload.substring(0, 5) == "login")
       {
-        String user_name = payload.substring(5);
-        Serial.println(user_name);
-
-        display.clearDisplay();
-        display.drawBitmap(5, 15, checkin_bits, CheckInOut_width, CheckInOut_height, WHITE);
-        display.display();
-        delay(3000);
-
-        display.clearDisplay();
-        display.setTextSize(2);      // Normal 2:2 pixel scale
-        display.setTextColor(WHITE); // Draw white text
-        display.setCursor(0, 0);
-        display.print("Willkommen");
-        display.setCursor(0, 20);
-        display.print(user_name);
-        display.display();
-        delay(3000);
+        Card_Message = payload.substring(5);
+        CardResult = LOGIN_PICTURE;
       }
       else if (payload.substring(0, 6) == "logout")
       {
-        String user_name = payload.substring(6);
-        Serial.println(user_name);
-
-        display.clearDisplay();
-        display.drawBitmap(5, 15, checkout_bits, CheckInOut_width, CheckInOut_height, WHITE);
-        display.display();
-        delay(1000);
-
-        display.clearDisplay();
-        display.setTextSize(2);      // Normal 2:2 pixel scale
-        display.setTextColor(WHITE); // Draw white text
-        display.setCursor(0, 0);
-        display.print("Tschuess");
-        display.setCursor(0, 20);
-        display.print(user_name);
-        display.display();
-        delay(2000);
+        Card_Message = payload.substring(6);
+        CardResult = LOGOUT_PICTURE;
       }
       else if (payload == "successful")
       {
-        display.clearDisplay();
-        display.setTextSize(2);      // Normal 2:2 pixel scale
-        display.setTextColor(WHITE); // Draw white text
-        display.setCursor(5, 0);     // Start at top-left corner
-        display.print(F("New Card"));
-        display.display();
+        CardResult = CARD_ADD;
       }
       else if (payload == "available")
       {
-        display.clearDisplay();
-        display.setTextSize(2);      // Normal 2:2 pixel scale
-        display.setTextColor(WHITE); // Draw white text
-        display.setCursor(5, 0);     // Start at top-left corner
-        display.print(F("Free Card"));
-        display.display();
+        CardResult = CARD_FREE;
       }
       delay(100);
     }
@@ -170,11 +137,13 @@ void SendCardID(String Card_uid)
       display.print(errorMessage);
       display.display();
     }
-    else{
+    else
+    {
       Serial.println(payload);
     }
     http.end(); // Close connection
   }
+  Serial.println(Card_Message);
 }
 //=======================================================================
 
@@ -203,40 +172,6 @@ void saveConfigCallback()
 //=======================================================================
 
 //************************************************************************
-// display time
-void displayTime()
-{
-  display.clearDisplay();
-
-  time_t now = time(nullptr);
-  struct tm *p_tm = localtime(&now);
-  display.setTextSize(1);      // Normal 2:2 pixel scale
-  display.setTextColor(WHITE); // Draw white text
-  display.setCursor(10, 0);
-
-  display.setTextSize(4);      // Normal 2:2 pixel scale
-  display.setTextColor(WHITE); // Draw white text
-  display.setCursor(0, 21);
-  if ((p_tm->tm_hour) < 10)
-  {
-    display.print("0");
-    display.print(p_tm->tm_hour);
-  }
-  else
-    display.print(p_tm->tm_hour);
-  display.print(":");
-  if ((p_tm->tm_min) < 10)
-  {
-    display.print("0");
-    display.println(p_tm->tm_min);
-  }
-  else
-    display.println(p_tm->tm_min);
-  display.display();
-}
-//=======================================================================
-
-//************************************************************************
 void checkNewCard()
 {
   if (!mfrc522.PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial())
@@ -244,7 +179,6 @@ void checkNewCard()
     return;
   }
 
-  String newRfidId = "";
   for (byte i = 0; i < mfrc522.uid.size; i++)
   {
     // !! Achtung es wird ein Leerzeichen vor der ID gesetzt !!
@@ -260,8 +194,134 @@ void checkNewCard()
     //überschreiben der alten ID mit der neuen
     OldCardID = newRfidId;
     //---------------------------------------------
+    CardResult = CARD_SEND;
     Serial.println(newRfidId);
-    SendCardID(newRfidId);
+  }
+}
+
+void display_routine()
+{
+  // only if nothing to be displayed
+  if (!display_timeout)
+  {
+    display.clearDisplay();
+    display.setTextSize(2);      // Normal 1:1 pixel scale
+    display.setTextColor(WHITE); // Draw white text
+    switch (CardResult)
+    {
+    case CARD_SEND:
+    {
+      display.setCursor(0, 0);
+      display.print("bitte warten");
+      // display_timeout = millis() + 100;
+    }
+    break;
+    case DEVICE_READY:
+      display.setCursor(8, 0); // Start at top-left corner
+      display.print(F("Verbunden \n"));
+      display.drawBitmap(33, 15, Wifi_connected_bits, Wifi_connected_width, Wifi_connected_height, WHITE);
+      display_timeout = millis() + 5000;
+      break;
+    case LOGIN_PICTURE:
+      display.drawBitmap(5, 15, checkin_bits, CheckInOut_width, CheckInOut_height, WHITE);
+      display_timeout = millis() + 1000;
+      break;
+    case LOGIN_NAME:
+    {
+      display.setCursor(0, 0);
+      display.print("Willkommen");
+      display.setCursor(0, 20);
+      display.print(Card_Message);
+      display_timeout = millis() + 3000;
+    }
+    break;
+    case LOGOUT_PICTURE:
+    {
+      display.drawBitmap(5, 15, checkout_bits, CheckInOut_width, CheckInOut_height, WHITE);
+      display_timeout = millis() + 1000;
+    }
+    break;
+    case LOGOUT_NAME:
+    {
+      display.setCursor(0, 0);
+      display.print("Tschuess");
+      display.setCursor(0, 20);
+      display.print(Card_Message);
+      display_timeout = millis() + 2000;
+    }
+    break;
+    case TIME:
+    {
+      time_t now = time(nullptr);
+      struct tm *p_tm = localtime(&now);
+      display.setTextSize(4); // Normal 2:2 pixel scale
+      display.setCursor(0, 21);
+      if ((p_tm->tm_hour) < 10)
+      {
+        display.print("0");
+        display.print(p_tm->tm_hour);
+      }
+      else
+      {
+        display.print(p_tm->tm_hour);
+      }
+      display.print(":");
+      if ((p_tm->tm_min) < 10)
+      {
+        display.print("0");
+        display.println(p_tm->tm_min);
+      }
+      else
+      {
+        display.println(p_tm->tm_min);
+      }
+    }
+    break;
+    case CARD_ADD:
+    {
+      display.setCursor(5, 0); // Start at top-left corner
+      display.print(F("Neue Karte"));
+      display_timeout = millis() + 3000;
+    }
+    break;
+    case CARD_FREE:
+    {
+      display.setCursor(5, 0); // Start at top-left corner
+      display.print(F("Leere Karte"));
+      display_timeout = millis() + 3000;
+    }
+    break;
+    default:
+      CardResult = IDLE;
+    }
+    display.display();
+  }
+  // Clear Screen
+  if (display_timeout && display_timeout < millis())
+  {
+    display_timeout = 0; // Stop Routine from Displaying new stuff
+    display.clearDisplay();
+    // Decide whats next
+    switch (CardResult)
+    {
+    case DEVICE_READY:
+      CardResult = IDLE;
+      break;
+    case LOGIN_PICTURE:
+      CardResult = LOGIN_NAME;
+      break;
+    case LOGIN_NAME:
+      CardResult = IDLE;
+      break;
+    case LOGOUT_PICTURE:
+      CardResult = LOGOUT_NAME;
+      break;
+    case LOGOUT_NAME:
+      CardResult = IDLE;
+      break;
+    default:
+      CardResult = IDLE;
+    }
   }
 }
 
@@ -290,7 +350,7 @@ void setup()
   display.setTextSize(1);      // Normal 1:1 pixel scale
   display.setTextColor(WHITE); // Draw white text
   display.setCursor(0, 0);     // Start at top-left corner
-  display.print(F("Booting \n"));
+  display.print(F("Startet \n"));
   display.setCursor(0, 50);
   display.setTextSize(2);
   display.drawBitmap(73, 10, Wifi_start_bits, Wifi_start_width, Wifi_start_height, WHITE);
@@ -367,19 +427,21 @@ void setup()
   //---------------------------------------------
   configTime(timezone * 3600, time_dst, time_server, "time.nist.gov");
 
-  displayReady();
+  Serial.println("device ready");
+  CardResult = DEVICE_READY;
 }
 //************************************************************************
 void loop()
 {
-  //---------------------------------------------
-  if (millis() - previousMillis1 >= 15000)
+  display_routine();
+  if (newRfidId != "")
   {
-    previousMillis1 = millis();
-    displayTime();
+    SendCardID(newRfidId);
+    newRfidId = "";
   }
+
   //---------------------------------------------
-  if (millis() - previousMillis2 >= 15000)
+  if (millis() - previousMillis2 >= 5000)
   {
     previousMillis2 = millis();
     OldCardID = "";

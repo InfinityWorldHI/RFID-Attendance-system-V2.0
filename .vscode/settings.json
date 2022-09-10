@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "*.cps": "javascript",
+        "*.h": "c",
+        "functional": "cpp",
+        "iterator": "cpp",
+        "istream": "cpp",
+        "limits": "cpp",
+        "ostream": "cpp",
+        "type_traits": "cpp"
+    }
+}
