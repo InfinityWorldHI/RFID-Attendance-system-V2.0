@@ -13,6 +13,7 @@ $css_extra = "css/devices.css";
 ob_start();
 // <script src="js/manage_users.js"></script>
 ?>
+<script type="module" src="https://unpkg.com/esp-web-tools@9.0.3/dist/web/install-button.js?module"></script>
 <h1 class="slideInDown animated">Leser hinzufügen/bearbeiten entfernen</h1>
 <!-- New Devices -->
 <div class="modal fade" id="new-device" tabindex="-1" role="dialog" aria-labelledby="Neuer Leser" aria-hidden="true">
@@ -67,6 +68,11 @@ ob_start();
 					</div>
 				</div>
 				<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#new-device" style="font-size: 18px; float: right; margin-top: -6px;">Neuer Leser</button>
+				<esp-web-install-button manifest="/firmware/manifest.json">
+					<button slot="activate" class="btn btn-success">Installieren/Aktualisieren</button>
+					<span slot="unsupported">Mit deinem Browser ist das leider nicht möglich - Verwenden Sie Microsoft Edge/Google Chrome auf einem PC</span>
+					<span slot="not-allowed">Diese Installation ist nur über HTTPS:// möglich - Prüfen Sie die Adresszeile</span>
+				</esp-web-install-button>
 			</div>
 		</div>
 		<!-- \\devices -->
@@ -74,13 +80,14 @@ ob_start();
 
 <script>
 	let devices = [];
+
 	function addDevice() {
 		$.ajax({
 			url: 'dev_config.php',
 			type: 'POST',
 			dataType: 'json',
 			data: JSON.stringify({
-				method: ($.isNumeric($('#dev_id').val())?"update":"add"),
+				method: ($.isNumeric($('#dev_id').val()) ? "update" : "add"),
 				data: {
 					id: $('#dev_id').val(),
 					device_name: $('#dev_name').val(),
@@ -96,8 +103,8 @@ ob_start();
 		});
 	}
 
-	function editDevice(id){
-		device = devices.find(device => device.id==id);
+	function editDevice(id) {
+		device = devices.find(device => device.id == id);
 		$('#dev_id').val(device.id);
 		$('#dev_name').val(device.device_name);
 		$('#dev_dep').val(device.device_dep);;
@@ -178,7 +185,7 @@ ob_start();
 					devices = data_devices;
 					$('.mode_sel').bootstrapToggle({
 						on: 'Zeiterfassung',
-      					off: 'Registrierung',
+						off: 'Registrierung',
 						onstyle: "mode_select_read",
 						offstyle: "mode_select_learn"
 					});
@@ -216,14 +223,14 @@ ob_start();
 						modeSelectId = value;
 						return value;
 					default:
-						let html = "<input type=\"checkbox\" class=\"mode_sel\" data-id=\"" + modeSelectId + "\" data-toggle=\"toggle\" " + (value==1 ? "checked" : "") + ">";
+						let html = "<input type=\"checkbox\" class=\"mode_sel\" data-id=\"" + modeSelectId + "\" data-toggle=\"toggle\" " + (value == 1 ? "checked" : "") + ">";
 						modeSelectId = -1;
 						return html;
 				}
 			},
 			editButtons: function(value, template) {
 				return "<button type=\"button\" class=\"btn btn-success\" data-bs-toggle=\"modal\" data-bs-target=\"#new-device\" onClick=\"editDevice('" + value + "')\" title=\"Edit this device\"><span class=\"fa fa-pencil\"></span></button>" +
-					   "<button type=\"button\" class=\"btn btn-danger\" onClick=\"deleteDevice('" + value + "')\" title=\"Delete this device\"><span class=\"fa fa-trash\"></span></button>";
+					"<button type=\"button\" class=\"btn btn-danger\" onClick=\"deleteDevice('" + value + "')\" title=\"Delete this device\"><span class=\"fa fa-trash\"></span></button>";
 			}
 		});
 		loadDevices(true);
