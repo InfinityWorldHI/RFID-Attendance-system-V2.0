@@ -170,7 +170,7 @@ class AdminObject extends DatabaseObject
     public $admin_passwd_reset_timeout = "";
 }
 
-function getDeviceByToken(string $device_token = ""): DeviceObject
+function getDeviceByToken(string $device_token = ""): ?DeviceObject
 {
     global $conn;
     $result = $conn->query("SELECT * FROM " . DeviceObject::TABLE_NAME . " WHERE device_uid = '$device_token'");
@@ -180,7 +180,7 @@ function getDeviceByToken(string $device_token = ""): DeviceObject
     return null;
 }
 
-function getDeviceById(int $id = 0): DeviceObject
+function getDeviceById(int $id = 0): ?DeviceObject
 {
     global $conn;
     $result = $conn->query("SELECT * FROM " . DeviceObject::TABLE_NAME . " WHERE " . DeviceObject::TABLE_ID . " = '$id'");
@@ -233,7 +233,7 @@ function getUserByCardId(string $card_id = ""): ?UserObject
     return null;
 }
 
-function getUserById(int $id = 0): UserObject
+function getUserById(int $id = 0): ?UserObject
 {
     global $conn;
     $result = $conn->query("SELECT * FROM " . UserObject::TABLE_NAME . " WHERE " . UserObject::TABLE_ID . " = '$id'");
@@ -314,7 +314,7 @@ function getLogList(string $search = ''): array
     return $return;
 }
 
-function getAdminBy(int $id = 0): AdminObject
+function getAdminBy(int $id = 0): ?AdminObject
 {
     global $conn;
     $result = $conn->query("SELECT * FROM " . AdminObject::TABLE_NAME . " WHERE " . AdminObject::TABLE_ID . " = '$id'");
