@@ -69,7 +69,8 @@ enum CardStates
   LOGOUT_NAME,
   TIME,
   CARD_ADD,
-  CARD_FREE
+  CARD_FREE,
+  CARD_ERROR
 };
 String Card_Message = "";
 String newRfidId = "";
@@ -127,18 +128,13 @@ void SendCardID(String Card_uid)
     }
     else if (payload.substring(0, 6) == "Error:")
     {
-      String errorMessage = payload;
-      Serial.println(errorMessage);
-
-      display.clearDisplay();
-      display.setTextSize(2);      // Normal 2:2 pixel scale
-      display.setTextColor(WHITE); // Draw white text
-      display.setCursor(0, 0);     // Start at top-left corner
-      display.print(errorMessage);
-      display.display();
+      CardResult = CARD_ERROR;
+      Card_Message = payload;
+      Serial.println(payload);
     }
     else
     {
+      CardResult = IDLE;
       Serial.println(payload);
     }
     http.end(); // Close connection
@@ -291,6 +287,14 @@ void display_routine()
       display_timeout = millis() + 3000;
     }
     break;
+    case CARD_ERROR:
+    {
+      display.setCursor(0, 0);
+      display.print(Card_Message);
+      display_timeout = millis() + 2000;
+    }
+    break;
+    
     default:
       CardResult = IDLE;
     }
