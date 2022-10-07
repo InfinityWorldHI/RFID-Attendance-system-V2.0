@@ -15,12 +15,12 @@ function error(string $message){
 
 //Check given Data
 if (!$card_uid || !$device_token) {
-    error("Error: equest_malformed");
+    error("Error: Ungueltige Anfrage");
 }
 //search db for device
 $device = getDeviceByToken($device_token);
 if (is_null($device)) {
-    error("Error: Device not found");
+    error("Error: Gerät nicht gefunden");
 }
 
 //check device mode
@@ -29,12 +29,12 @@ switch ($device->device_mode) {
         //search db for user
         $user = getUserByCardId($card_uid);
         if (is_null($user)) {
-            error("Error: user_not_found!");
+            error("Error: Nutzer nicht gefunden!");
         }
         //*****************************************************
         //An existed Card has been detected for Login or Logout
         if ($user->add_card != 1) {
-            error("Error: not registered!");
+            error("Error: Nicht registriert!");
         }
         //in correct department or allowed for all ?
         if ($user->device_dep == $device->device_dep || $user->device_dep == 'All') {
@@ -48,7 +48,7 @@ switch ($device->device_mode) {
                 if ($Log->save()) {
                     echo "logout" . $user->username;
                 } else {
-                    error("Error: SQL insert logout");
+                    error("Error: SQL Checkout Fehler");
                 }
             } else {
                 //*****************************************************
@@ -67,11 +67,11 @@ switch ($device->device_mode) {
                 if ($Log->insert()) {
                     echo "login" . $user->username;
                 } else {
-                    error("Error: SQL Select login");
+                    error("Error: SQL Checkin Fehler");
                 }
             }
         } else {
-            error("Error: Not allowed here!");
+            error("Error: Hier nicht erlaubt");
         }
         break;
     case DeviceObject::DEVICE_MODE_LEARN: //Learn
@@ -95,5 +95,5 @@ switch ($device->device_mode) {
         }
         break;
     default:
-        error("Error: Unknown device mode");
+        error("Error: Unbekannter Modus");
 }
