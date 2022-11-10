@@ -147,7 +147,7 @@ class UserLogObject extends DatabaseObject
     const TABLE_NAME = "users_logs";
     const TABLE_ID = "id";
     public $id = null;
-    public $username = 0;
+    public $username = "";
     public $serialnumber = 0;
     public $card_uid = "";
     public $card_out = 0;
