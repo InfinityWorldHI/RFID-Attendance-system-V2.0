@@ -20,6 +20,7 @@
 // RFID-----------------------------
 #include <SPI.h>
 #include <MFRC522.h>
+#include "Timer.h"
 // OLED-----------------------------
 #include <Wire.h>
 #include <icons.h>
@@ -34,11 +35,11 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 //************************************************************************
 SPIClass spi(HSPI);
 MFRC522 mfrc522(5, 15); // Create MFRC522 instance.
-
+Timer readerTimer;
+uint16_t TimerEventCardRead = 0;
+uint16_t TimerEventCardClear = 0;
+uint16_t TimerEventCardSend = 0;
 //************************************************************************
-unsigned long previousMillis1 = 0;
-unsigned long previousMillis2 = 0;
-unsigned long previousMillis3 = 0;
 unsigned long lastCardTime = 0;
 bool shouldSaveConfig = false;
 String OldCardID;
@@ -79,8 +80,13 @@ CardStates CardResult = IDLE;
 
 //=======================================================================
 //************send the Card UID to the website*************
-void SendCardID(String Card_uid)
+void resetLastCard();
+void SendCardID();
+void checkNewCard();
+void SendCardID()
 {
+  TimerEventCardClear = readerTimer.every(2000, resetLastCard);
+  readerTimer.stop(TimerEventCardSend);
   Serial.println("Sending the Card ID");
   if (WiFi.isConnected())
   {
@@ -89,7 +95,7 @@ void SendCardID(String Card_uid)
     String temp_url;
     temp_url = backend_server;
     temp_url.concat("?card_uid=");
-    temp_url.concat(Card_uid);
+    temp_url.concat(newRfidId);
     temp_url.concat("&device_token=");
     temp_url.concat(device_token); // Add the Card ID to the GET array in order to send it
 
@@ -134,12 +140,18 @@ void SendCardID(String Card_uid)
     }
     else
     {
-      CardResult = IDLE;
-      Serial.println(payload);
+      CardResult = CARD_ERROR;
+      Card_Message = "Uebertragungsfehler";
+      // CardResult = IDLE;
+      // Serial.println(payload);
     }
     http.end(); // Close connection
+  }else{
+    CardResult = CARD_ERROR;
+    Card_Message = "Kein Empfang";
   }
   Serial.println(Card_Message);
+  newRfidId = "";
 }
 //=======================================================================
 
@@ -168,6 +180,14 @@ void saveConfigCallback()
 //=======================================================================
 
 //************************************************************************
+void resetLastCard()
+{
+  OldCardID = "";
+  newRfidId = "";
+  TimerEventCardRead =  readerTimer.every(300, checkNewCard);
+  readerTimer.stop(TimerEventCardClear);
+}
+
 void checkNewCard()
 {
   if (!mfrc522.PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial())
@@ -192,6 +212,8 @@ void checkNewCard()
     //---------------------------------------------
     CardResult = CARD_SEND;
     Serial.println(newRfidId);
+    TimerEventCardSend = readerTimer.every(500, SendCardID);
+    readerTimer.stop(TimerEventCardRead);
   }
 }
 
@@ -294,7 +316,7 @@ void display_routine()
       display_timeout = millis() + 2000;
     }
     break;
-    
+
     default:
       CardResult = IDLE;
     }
@@ -334,6 +356,8 @@ void setup()
 {
   delay(1000);
   Serial.begin(115200);
+  Serial.print("Startup RFID Attendance v");
+  Serial.print(CODE_VERSION);
 
   //-----------start rfid reader-------------
   delay(1000);
@@ -347,8 +371,9 @@ void setup()
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
   { // Address 0x3D for 128x64
     Serial.println(F("Display allocation failed"));
-    for (;;)
-      ; // Don't proceed, loop forever
+    Serial.println(F("Restart in 5s - as no feedback possible"));
+    delay(5000);
+    ESP.restart();
   }
   display.clearDisplay();
   display.setTextSize(1);      // Normal 1:1 pixel scale
@@ -417,6 +442,13 @@ void setup()
   WiFiManager.addParameter(&custom_backend_server);
   WiFiManager.addParameter(&custom_device_token);
 
+  String hostname = "Zeiterfassung";
+  hostname.concat(WiFi.macAddress());
+  WiFi.hostname(hostname);
+  //Give more time to connect to access point
+  WiFiManager.setConnectTimeout(300);
+  WiFiManager.setConnectRetries(5);
+  
   // reset saved settings
   // WiFiManager.resetSettings();
   if (!WiFiManager.autoConnect("ESP-Attendance-Setup"))
@@ -433,28 +465,32 @@ void setup()
 
   Serial.println("device ready");
   CardResult = DEVICE_READY;
+  TimerEventCardRead =  readerTimer.every(300, checkNewCard);
 }
 //************************************************************************
 void loop()
 {
-  display_routine();
-  if (newRfidId != "")
+  // single character user interface
+  if (Serial.available())
   {
-    SendCardID(newRfidId);
-    newRfidId = "";
+    switch (Serial.read())
+    {
+    case 'r':
+      ESP.restart();
+      break;
+    default:
+      break;
+    }
   }
 
-  //---------------------------------------------
-  if (millis() - previousMillis2 >= 5000)
-  {
-    previousMillis2 = millis();
-    OldCardID = "";
+  //display routine
+  display_routine();
+
+  //reader actions
+  readerTimer.update();
+
+  //simple restart when disconnected
+  if (!WiFi.isConnected()){
+    ESP.restart();
   }
-  //---------------------------------------------
-  if (millis() - previousMillis3 >= 200)
-  {
-    previousMillis3 = millis();
-    checkNewCard();
-  }
-  delay(50);
 }

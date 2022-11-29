@@ -1,6 +1,6 @@
 {
     "name": "RFID-Zeiterfassung",
-    "version": "1.0",
+    "version": "2.3",
     "funding_url": "https://github.com/sponsors/mkrasselt1",
     "new_install_prompt_erase": false,
     "builds": [
