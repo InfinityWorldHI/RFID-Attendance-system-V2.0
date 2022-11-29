@@ -151,7 +151,6 @@ void SendCardID()
     Card_Message = "Kein Empfang";
   }
   Serial.println(Card_Message);
-  newRfidId = "";
 }
 //=======================================================================
 
@@ -375,6 +374,8 @@ void setup()
     delay(5000);
     ESP.restart();
   }
+  //rotate screen if needed
+  display.setRotation(2);
   display.clearDisplay();
   display.setTextSize(1);      // Normal 1:1 pixel scale
   display.setTextColor(WHITE); // Draw white text
