@@ -10,6 +10,6 @@ return [
     "admin" => [
         "email" => "admin@localhost",
         "name" => "Admins Name"
-    ]
-
+    ],
+    "timezone" => "Europe/Berlin"
 ];

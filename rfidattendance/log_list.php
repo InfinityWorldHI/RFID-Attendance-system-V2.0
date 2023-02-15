@@ -85,6 +85,21 @@ if (isset($_POST)) {
     $searchQuery .= " AND device_dep ='" . $dev_uid . "'";
   }
   $logs = getLogList($searchQuery);
+  //adjust for timezone;
+  $serverTimezone = new DateTimeZone('UTC');
+  $newTimezone = new DateTimeZone($config["timezone"]);
+  foreach ($logs as $logEntry) {
+    //checkin
+    $logEntry->timein = (new DateTime($logEntry->checkindate . ' ' . $logEntry->timein, $serverTimezone))
+      ->setTimeZone($newTimezone)
+      ->format('H:i:s');
+    //checkout
+    $logEntry->timeout = (new DateTime($logEntry->checkindate . ' ' . $logEntry->timeout, $serverTimezone))
+      ->setTimeZone($newTimezone)
+      ->format('H:i:s');
+  }
+
+  //adjust output format
   switch ($request->output) {
     case "csv":
       header('Content-Type: text/csv');
