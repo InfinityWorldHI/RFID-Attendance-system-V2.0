@@ -36,6 +36,25 @@ ob_start();
 					}
 					?>
 				</select>
+				<label for="calendarId"><b>Nutzer Calendar:</b></label>
+				<select class="dev_sel" name="calendarId" id="calendarId" style="color: #000;">
+					<option value="">Kein Kalendar</option>
+					<?php
+					include "google-calendar-api.php";
+					$cAPI = new GoogleCalendarApi($config["google"]["clientId"], $config["google"]["clientSecret"], $config["google"]);
+					$calendarsAll = $cAPI->GetCalendarsList();
+					foreach ($calendarsAll as $calendar) {
+						echo "					<option value=\"" . $calendar["id"] . "\">" . $calendar["summary"] . "</option>\r\n";
+					}
+					if ($cAPI->tokenUpdated) {
+						$config["google"] = $cAPI->getConfig();
+						file_put_contents(
+							"./config.php",
+							"<?php\n\rreturn " . var_export($config, true) . ";\n?>"
+						);
+					}
+					?>
+				</select>
 				<input type="radio" name="user_gender" class="gender" value="Female">Frau
 				<input type="radio" name="user_gender" class="gender" value="Male">Mann
 			</label>
@@ -96,6 +115,7 @@ ob_start();
 		$("#user_serialnumber").val(data.serialnumber);
 		$("#user_email").val(data.email);
 		$("#user_device_dep").val(data.device_dep).change();
+		$("#calendarId").val(data.calendarId).change();
 		$("input:radio[name=user_gender]").val([data.gender]).change();
 	}
 
@@ -106,6 +126,7 @@ ob_start();
 			serialnumber: $("#user_serialnumber").val(),
 			email: $("#user_email").val(),
 			device_dep: $("#user_device_dep").val(),
+			calendarId: $("#calendarId").val(),
 			gender: $('input[name=user_gender]:checked', '#user_form').val()
 		};
 		$.ajax({
@@ -134,6 +155,7 @@ ob_start();
 			serialnumber: $("#user_serialnumber").val(),
 			email: $("#user_email").val(),
 			device_dep: $("#user_device_dep").val(),
+			calendarId: $("#calendarId").val(),
 			gender: $('input[name=user_gender]:checked', '#user_form').val()
 		};
 		$.ajax({

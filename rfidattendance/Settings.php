@@ -60,6 +60,9 @@ ob_start();
                             <input class="form-control" type="password" name="admin_pwd_new" placeholder="Neues Passwort..." />
                         </div>
                         <div class="form-group">
+                            <a href="./google-login.php" class="form-control btn btn-success">Google Konto autorisieren</a>
+                        </div>                        
+                        <div class="form-group">
                             <button type="submit" name="update" class="btn btn-success">Speichern</button>
                         </div>
                     </fieldset>

@@ -79,6 +79,7 @@ CREATE TABLE `users` (
   `email` varchar(50) NOT NULL DEFAULT 'None',
   `card_uid` varchar(30) NOT NULL,
   `card_select` tinyint(1) NOT NULL DEFAULT 0,
+  `calendarId` varchar(70) NULL,
   `user_date` date NOT NULL,
   `device_uid` varchar(20) NOT NULL DEFAULT '0',
   `device_dep` varchar(20) NOT NULL DEFAULT '0',
@@ -101,6 +102,7 @@ CREATE TABLE `users_logs` (
   `checkindate` date NOT NULL,
   `timein` time NOT NULL,
   `timeout` time NOT NULL,
+  `calendarEventId` varchar(35) NULL,
   `card_out` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 

@@ -11,6 +11,8 @@ interface ObjectInterface
 
 class DatabaseObject implements ObjectInterface
 {
+    
+    public $id = 0;
     const TABLE_NAME = "table";
     const TABLE_ID = "id";
     /**
@@ -117,7 +119,6 @@ class DeviceObject extends DatabaseObject
     const DEVICE_MODE_TIME = 1;
     const DEVICE_MODE_LEARN = 0;
 
-    public $id = NULL;
     public $device_name = "";
     public $device_dep = "";
     public $device_uid = "";
@@ -129,7 +130,6 @@ class UserObject extends DatabaseObject
 {
     const TABLE_NAME = "users";
     const TABLE_ID = "id";
-    public $id = NULL;
     public $username = "";
     public $serialnumber = 0;
     public $gender = "";
@@ -137,6 +137,7 @@ class UserObject extends DatabaseObject
     public $card_uid = "";
     public $card_select = 0;
     public $user_date = null;
+    public $calendarId = "";
     public $device_uid = "";
     public $device_dep = "";
     public $add_card = 0;
@@ -146,7 +147,6 @@ class UserLogObject extends DatabaseObject
 {
     const TABLE_NAME = "users_logs";
     const TABLE_ID = "id";
-    public $id = null;
     public $username = "";
     public $serialnumber = 0;
     public $card_uid = "";
@@ -156,13 +156,13 @@ class UserLogObject extends DatabaseObject
     public $checkindate = null;
     public $timein = null;
     public $timeout = null;
+    public $calendarEventId = "";
 }
 
 class AdminObject extends DatabaseObject
 {
     const TABLE_NAME = "admin";
     const TABLE_ID = "id";
-    public $id = null;
     public $admin_name = "";
     public $admin_email = "@example.com";
     public $admin_pwd = "";
@@ -170,10 +170,10 @@ class AdminObject extends DatabaseObject
     public $admin_passwd_reset_timeout = "";
 }
 
-function getDeviceByToken(string $device_token = ""): ?DeviceObject
+function getDeviceByToken(string $device_uid = ""): ?DeviceObject
 {
     global $conn;
-    $result = $conn->query("SELECT * FROM " . DeviceObject::TABLE_NAME . " WHERE device_uid = '$device_token'");
+    $result = $conn->query("SELECT * FROM " . DeviceObject::TABLE_NAME . " WHERE device_uid = '$device_uid'");
     if ($result->num_rows == 1) {
         return new DeviceObject($result->fetch_assoc(), $conn);
     }

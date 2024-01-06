@@ -1,24 +1,27 @@
 <?php
 //Connect to database
 require 'connectDB.php';
+include "./google-calendar-api.php";
+$cAPI = new GoogleCalendarApi($config["google"]["clientId"], $config["google"]["clientSecret"], $config["google"]);
 $d = date("Y-m-d");
 $t = date("H:i:s");
 
-$device_token = filter_input(INPUT_GET, "device_token",  FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/\A[[:xdigit:]]{16}\z/', 'default' => 0]]);
+$device_uid = filter_input(INPUT_GET, "device_token",  FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/\A[[:xdigit:]]{16}\z/', 'default' => 0]]);
 $card_uid = filter_input(INPUT_GET, "card_uid",  FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/\A[[:xdigit:]]{8,32}\z/', 'default' => 0]]);
 
-function error(string $message){
+function error(string $message)
+{
     http_response_code(503);
     echo $message;
     exit;
 }
 
 //Check given Data
-if (!$card_uid || !$device_token) {
+if (!$card_uid || !$device_uid) {
     error("Error: Ungueltige Anfrage");
 }
 //search db for device
-$device = getDeviceByToken($device_token);
+$device = getDeviceByToken($device_uid);
 if (is_null($device)) {
     error("Error: Gerät nicht gefunden");
 }
@@ -43,6 +46,20 @@ switch ($device->device_mode) {
             if (!is_null($Log)) {
                 //*****************************************************
                 //Logout
+                if (!empty($Log->calendarEventId)) {
+                    // Update event on primary calendar
+                    $cAPI->UpdateCalendarEvent(
+                        $Log->calendarEventId,
+                        $user->calendarId,
+                        $user->username . " Arbeitszeit",
+                        false,
+                        [
+                            "start_time" => (new DateTime($Log->checkindate . " " . $Log->timein))->format(\DateTime::RFC3339),
+                            "end_time" => (new DateTime())->format(\DateTime::RFC3339)
+                        ],
+                        $config["timezone"]
+                    );
+                }
                 $Log->timeout = $t;
                 $Log->card_out = 1;
                 if ($Log->save()) {
@@ -53,6 +70,20 @@ switch ($device->device_mode) {
             } else {
                 //*****************************************************
                 //Login
+                if (!empty($user->calendarId)) {
+                    $eventId = $cAPI->CreateCalendarEvent(
+                        $user->calendarId,
+                        $user->username . "Arbeitszeit",
+                        false,
+                        false,
+                        false,
+                        [
+                            "start_time" => (new DateTime())->format(\DateTime::RFC3339),
+                            "end_time" => (new DateTime())->modify("+5 minutes")->format(\DateTime::RFC3339)
+                        ],
+                        $config["timezone"]
+                    );
+                }
                 $Log = new UserLogObject([
                     "username" => $user->username,
                     "serialnumber" => $user->serialnumber,
@@ -61,7 +92,8 @@ switch ($device->device_mode) {
                     "device_dep" => $device->device_dep,
                     "checkindate" => $d,
                     "timein" => $t,
-                    "timeout" => 0
+                    "timeout" => 0,
+                    "calendarEventId" => $eventId ?? null
                 ], $conn);
 
                 if ($Log->insert()) {
@@ -78,22 +110,30 @@ switch ($device->device_mode) {
         unselectUsers();
 
         //New Card should be been added if needed so search for it
-        if(selectUserByCardId($card_uid)){
+        if (selectUserByCardId($card_uid)) {
             echo "available";
-        }else{
+        } else {
             //The Card is new
             $User = new UserObject([
                 "card_uid" => $card_uid,
                 "card_select" => 1,
-                "device_uid" => $device->device_token,
+                "device_uid" => $device->device_uid,
                 "device_dep" => $device->device_dep,
                 "user_date" => $d
             ], $conn);
-            if($User->insert()){
+            if ($User->insert()) {
                 echo "successful";
             }
         }
         break;
     default:
         error("Error: Unbekannter Modus");
+}
+
+if ($cAPI->tokenUpdated) {
+    $config["google"] = $cAPI->getConfig();
+    file_put_contents(
+        "./config.php",
+        "<?php\n\rreturn " . var_export($config, true) . ";\n?>"
+    );
 }
