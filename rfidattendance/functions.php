@@ -11,7 +11,7 @@ interface ObjectInterface
 
 class DatabaseObject implements ObjectInterface
 {
-    
+
     public $id = 0;
     const TABLE_NAME = "table";
     const TABLE_ID = "id";
@@ -290,6 +290,13 @@ function selectUserByCardId(string $card_id = ""): ?UserObject
 function getLogByCheckinDate(string $date = "", string $card_uid = ""): ?UserLogObject
 {
     global $conn;
+    //today
+    $result = $conn->query("SELECT * FROM " . UserLogObject::TABLE_NAME . " WHERE card_uid='" . $card_uid . "' AND checkindate='" . $date . "' AND card_out=0");
+    if ($result->num_rows >= 1) {
+        return new UserLogObject($result->fetch_assoc(), $conn);
+    }
+    //yesterday
+    $date = (new DateTime("yesterday"))->format("Y-m-d");
     $result = $conn->query("SELECT * FROM " . UserLogObject::TABLE_NAME . " WHERE card_uid='" . $card_uid . "' AND checkindate='" . $date . "' AND card_out=0");
     if ($result->num_rows >= 1) {
         return new UserLogObject($result->fetch_assoc(), $conn);
