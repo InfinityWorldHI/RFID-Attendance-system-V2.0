@@ -71,7 +71,7 @@ class GoogleCalendarApi
         if (time() >= ($this->expiration - 100)) {
             $data = $this->GetRefreshAccessToken();
             $this->accessToken = $data["access_token"];
-            $this->expiration = time() + $data["expires_in"];
+            $this->expiration = time() + ($data["expires_in"] ?? 100);
             $this->tokenUpdated = true;
         }
     }
