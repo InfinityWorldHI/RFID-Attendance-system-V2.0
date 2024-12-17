@@ -98,7 +98,7 @@ ob_start();
   <h1>Zeiten-Aufzeichnungen</h1>
   <div>
     <div class="table-responsive" style="max-height: 500px;">
-      <table class="table">
+      <table class="table" id="records">
         <thead class="table-primary">
           <tr>
             <th>ID</th>
@@ -115,27 +115,20 @@ ob_start();
         </tbody>
       </table>
       <div>
-        <button type="button" class="btn btn-primary"  data-bs-toggle="modal" data-bs-target="#Filter-export">Filter</button>
-        <button type="button" class="btn btn-success" id="excel_export" name="To_Excel"><i class="fa fa-file-excel-o"></i> Export</button>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#Filter-export">Filter</button>
       </div>
     </div>
   </div>
+  <link href="//cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css" rel="stylesheet" />
+  <script src="//cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
   <script>
-    function save(filename, data) {
-      const blob = new Blob([data], {
-        type: 'text/csv'
-      });
-      if (window.navigator.msSaveOrOpenBlob) {
-        window.navigator.msSaveBlob(blob, filename);
-      } else {
-        const elem = window.document.createElement('a');
-        elem.href = window.URL.createObjectURL(blob);
-        elem.download = filename;
-        document.body.appendChild(elem);
-        elem.click();
-        document.body.removeChild(elem);
+    new DataTable('#records', {
+      layout: {
+        topStart: {
+          buttons: ['copyHtml5', 'excelHtml5', 'csvHtml5', 'pdfHtml5']
+        }
       }
-    }
+    });
 
     function loadLogs(excel = false) {
       let logFilter = {
