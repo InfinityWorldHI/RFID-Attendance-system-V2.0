@@ -11,234 +11,264 @@ $all_users = getAllActiveUsers();
 $title = "Leser Verwalten";
 $css_extra = "css/devices.css";
 ob_start();
-// <script src="js/manage_users.js"></script>
 ?>
 <script type="module" src="https://unpkg.com/esp-web-tools@9.0.3/dist/web/install-button.js?module"></script>
-<h1 class="slideInDown animated">Leser hinzufügen/bearbeiten entfernen</h1>
-<!-- New Devices -->
-<div class="modal fade" id="new-device" tabindex="-1" role="dialog" aria-labelledby="Neuer Leser" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered" role="document">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h3 class="modal-title">Leser:</h3>
-				<button type="button" class="btn close" data-bs-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
-				</button>
-			</div>
-			<div class="modal-body">
-				<input type="hidden" name="dev_id" id="dev_id" /><br>
-				<label for="User-mail"><b>Name:</b></label>
-				<input type="text" name="dev_name" id="dev_name" placeholder="Name..." required /><br>
-				<label for="User-mail"><b>Abteilung:</b></label>
-				<input type="text" name="dev_dep" id="dev_dep" placeholder="Abteilung..." required /><br>
-			</div>
-			<div class="modal-footer">
-				<button type="button" name="dev_save" id="dev_save" class="btn btn-success">Speichern</button>
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
-			</div>
-		</div>
-	</div>
-</div>
-<!-- //New Devices -->
 <section class="container py-lg-5">
-	<div class="alert_dev"></div>
-	<!-- devices -->
-	<div class="row">
-		<div class="col-lg-12 mt-4">
-			<div class="panel">
-				<div class="panel-heading" style="font-size: 19px;">Deine Geräte:</div>
-				<div class="panel-body">
-					<div>
-						<div class="table-responsive">
-							<table class="table">
-								<thead>
-									<tr>
-										<th>Name</th>
-										<th>Abteilung</th>
-										<th>Token</th>
-										<th>Datum</th>
-										<th>Modus</th>
-										<th>Einstellung</th>
-									</tr>
-								</thead>
-								<tbody id="devices_list">
-								</tbody>
-							</table>
-						</div>
+	<!--User table-->
+	<h1>Leser hinzufügen/bearbeiten entfernen</h1>
+	<div class="table-responsive-sm">
+
+		<!-- New Devices -->
+		<div class="modal fade" id="new-device" tabindex="-1" role="dialog" aria-labelledby="Neuer Leser" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h3 class="modal-title">Leser:</h3>
+						<button type="button" class="btn close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<input type="hidden" name="dev_id" id="dev_id" /><br>
+						<label for="User-mail"><b>Name:</b></label>
+						<input type="text" name="dev_name" id="dev_name" placeholder="Name..." required /><br>
+						<label for="User-mail"><b>Abteilung:</b></label>
+						<input type="text" name="dev_dep" id="dev_dep" placeholder="Abteilung..." required /><br>
+					</div>
+					<div class="modal-footer">
+						<button type="button" name="dev_save" id="dev_save" class="btn btn-success">Speichern</button>
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Schließen</button>
 					</div>
 				</div>
-				<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#new-device" style="font-size: 18px; float: right; margin-top: -6px;">Neuer Leser</button>
-				<esp-web-install-button manifest="/firmware/manifest.json">
-					<button slot="activate" class="btn btn-success">Installieren/Aktualisieren</button>
-					<span slot="unsupported">Mit deinem Browser ist das leider nicht möglich - Verwenden Sie Microsoft Edge/Google Chrome auf einem PC</span>
-					<span slot="not-allowed">Diese Installation ist nur über HTTPS:// möglich - Prüfen Sie die Adresszeile</span>
-				</esp-web-install-button>
 			</div>
 		</div>
-		<!-- \\devices -->
-</section>
+		<!-- //New Devices -->
 
-<script>
-	let devices = [];
+		<!-- devices -->
+		<table class="table" id="devices_list">
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Abteilung</th>
+					<th>Token</th>
+					<th>Datum</th>
+					<th>Modus</th>
+					<th>Einstellung</th>
+				</tr>
+			</thead>
+			<tbody>
+			</tbody>
+		</table>
+		<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#new-device" style="font-size: 18px; float: right; margin-top: -6px;">Neuer Leser</button>
+		<esp-web-install-button manifest="/firmware/manifest.json">
+			<button slot="activate" class="btn btn-success">Installieren/Aktualisieren</button>
+			<span slot="unsupported">Mit deinem Browser ist das leider nicht möglich - Verwenden Sie Microsoft Edge/Google Chrome auf einem PC</span>
+			<span slot="not-allowed">Diese Installation ist nur über HTTPS:// möglich - Prüfen Sie die Adresszeile</span>
+		</esp-web-install-button>
+		<!-- \\devices -->new-device
+		<script>
+			let table = null;
 
-	function addDevice() {
-		$.ajax({
-			url: 'dev_config.php',
-			type: 'POST',
-			dataType: 'json',
-			data: JSON.stringify({
-				method: ($.isNumeric($('#dev_id').val()) ? "update" : "add"),
-				data: {
-					id: $('#dev_id').val(),
-					device_name: $('#dev_name').val(),
-					device_dep: $('#dev_dep').val(),
-				}
-			}),
-			success: function(response) {
-				$('#dev_name').val('');
-				$('#dev_dep').val('');
-				loadDevices();
-				$("#new-device").modal("hide");
+			function addDevice() {
+				$.ajax({
+					url: 'dev_config.php',
+					type: 'POST',
+					dataType: 'json',
+					data: JSON.stringify({
+						method: ($.isNumeric($('#dev_id').val()) ? "update" : "add"),
+						data: {
+							id: $('#dev_id').val(),
+							device_name: $('#dev_name').val(),
+							device_dep: $('#dev_dep').val(),
+						}
+					}),
+					success: function(response) {
+						$('#dev_name').val('');
+						$('#dev_dep').val('');
+						table.ajax.reload();
+						$("#new-device").modal("hide");
+					}
+				});
 			}
-		});
-	}
 
-	function editDevice(id) {
-		device = devices.find(device => device.id == id);
-		$('#dev_id').val(device.id);
-		$('#dev_name').val(device.device_name);
-		$('#dev_dep').val(device.device_dep);;
-	}
+			function editDevice(id) {
+				let devices = table.rows().data().toArray();
+				device = devices.find(device => device.id == id);
+				$('#dev_id').val(device.id);
+				$('#dev_name').val(device.device_name);
+				$('#dev_dep').val(device.device_dep);;
+				$('#new-device').modal('show');
+			}
 
-	function updateDevice(id, data) {
-		$.ajax({
-			url: 'dev_config.php',
-			type: 'POST',
-			dataType: 'json',
-			data: JSON.stringify({
-				method: "update",
-				data: {
-					...{
-						id: id
+			function updateDevice(id, data) {
+				$.ajax({
+					url: 'dev_config.php',
+					type: 'POST',
+					dataType: 'json',
+					data: JSON.stringify({
+						method: "update",
+						data: {
+							...{
+								id: id
+							},
+							...data,
+						}
+					}),
+					success: function(response) {
+						$('#dev_id').val('');
+						$('#dev_name').val('');
+						$('#dev_dep').val('');
+						table.ajax.reload();
+					}
+				});
+			}
+
+			function updateDeviceToken(id) {
+				$.ajax({
+					url: 'dev_config.php',
+					type: 'POST',
+					dataType: 'json',
+					data: JSON.stringify({
+						method: "token",
+						data: {
+							id: id
+						}
+					}),
+					success: function(response) {
+						table.ajax.reload();
+					}
+				});
+			}
+
+			function deleteDevice(id) {
+				if (!confirm("Möchtest du das Gerät wirklich löschen?")) {
+					return;
+				}
+				$.ajax({
+					url: 'dev_config.php',
+					type: 'POST',
+					dataType: 'json',
+					data: JSON.stringify({
+						method: "remove",
+						data: {
+							id: id,
+						}
+					}),
+					success: function(response) {
+						table.ajax.reload();
+					}
+				});
+			}
+
+			$().ready(() => {
+				//Save Device 
+				$("#dev_save").click(addDevice);
+				//Device Token update
+				$(document).on('click', '.dev_up_token', (event) => {
+					if (confirm("Möchtest du wirklich einen neuen Token erzeugen?")) {
+						let id = $(event.currentTarget).data("id");
+						updateDeviceToken(id);
+					}
+				});
+
+				//draw the table
+				table = new DataTable('#devices_list', {
+					layout: {
+						topStart: {
+							buttons: ['copyHtml5', 'excelHtml5', 'csvHtml5', 'pdfHtml5']
+						}
 					},
-					...data,
-				}
-			}),
-			success: function(response) {
-				$('#dev_id').val('');
-				$('#dev_name').val('');
-				$('#dev_dep').val('');
-				loadDevices();
-			}
-		});
-	}
-
-	function updateDeviceToken(id) {
-		$.ajax({
-			url: 'dev_config.php',
-			type: 'POST',
-			dataType: 'json',
-			data: JSON.stringify({
-				method: "token",
-				data: {
-					id: id
-				}
-			}),
-			success: function(response) {
-				loadDevices();
-			}
-		});
-	}
-
-	function deleteDevice(id) {
-		if (!confirm("Möchtest du das Gerät wirklich löschen?")) {
-			return;
-		}
-		$.ajax({
-			url: 'dev_config.php',
-			type: 'POST',
-			dataType: 'json',
-			data: JSON.stringify({
-				method: "remove",
-				data: {
-					id: id,
-				}
-			}),
-			success: function(response) {
-				loadDevices();
-			}
-		});
-	}
-
-	function loadDevices(force = false) {
-		$.getJSON("device_list.php", (data_devices) => {
-			if ($("#devices_list").children().length == 0 || force) {
-				let selected_user = data_devices.find((user) => {
-					return user.card_select;
+					processing: true,
+					ajax: {
+						url: 'device_list.php',
+						type: 'POST',
+						data: function(d) {
+							let logFilter = {
+								log_date: 1,
+								date_sel_start: $('#date_sel_start').val(),
+								date_sel_end: $('#date_sel_end').val(),
+								time_sel: $(".time_sel:checked").val(),
+								time_sel_start: $('#time_sel_start').val(),
+								time_sel_end: $('#time_sel_end').val(),
+								card_sel: $('#card_sel option:selected').val(),
+								dev_uid: $('#dev_sel option:selected').val(),
+							};
+							return JSON.stringify({
+								filter: logFilter,
+								output: "json"
+							});
+						}
+					},
+					columns: [{
+							data: 'device_name'
+						},
+						{
+							data: 'device_dep'
+						},
+						{
+							data: 'device_uid'
+						},
+						{
+							data: 'device_date'
+						},
+						{
+							data: 'device_mode'
+						},
+						{
+							data: 'id',
+						}
+					],
+					columnDefs: [{
+							targets: 4,
+							render: function(data, type, row, meta) {
+								var isChecked = data === 'true' || data === true || data === 1 || data === "1"; // Überprüfen, ob true
+								return `<input type="checkbox" class="toggle-switch" data-id="${row["id"]}" 
+                                    ${isChecked ? 'checked' : ''} 
+                                    data-toggle="toggle" data-size="sm">`;
+							}
+						},
+						{
+							targets: 2,
+							render: function(data, type, row, meta) {
+								return `<button type="button" class="dev_up_token btn btn-warning" title="Update this device Token" data-id="${row['id']}">
+            								<span class="fa fa-refresh"></span>
+        								</button>
+        								${data}`;
+							}
+						},
+						{
+							targets: 5,
+							render: function(data, type, row, meta) {
+								return `
+								<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#new-device" onClick="editDevice(${data})" title="Edit this device"><span class="fa fa-pencil"></span></button>
+								<button type="button" class="btn btn-danger" onClick="deleteDevice(${data})" title="Delete this device"><span class="fa fa-trash"></span></button>`;
+							}
+						}
+					],
+					drawCallback: function(row, data) {
+						$(".toggle-switch").bootstrapToggle({
+							on: 'Zeiterfassung',
+							off: 'Registrierung',
+							onstyle: "mode_select_read",
+							offstyle: "mode_select_learn"
+						});
+					}
 				});
-				if (selected_user != undefined) {
-					selectUser(selected_user.card_uid);
-				}
-			}
-			$("#devices_list").loadTemplate("template/device_table_manage.html", data_devices, {
-				complete: () => {
-					devices = data_devices;
-					$('.mode_sel').bootstrapToggle({
-						on: 'Zeiterfassung',
-						off: 'Registrierung',
-						onstyle: "mode_select_read",
-						offstyle: "mode_select_learn"
+				$('#devices_list').on('change', '.toggle-switch', function() {
+					var readerId = $(this).data('id'); // Hole die ID des Lesers
+					var isActive = $(this).prop('checked'); // Zustand des Toggles (true/false)
+
+					updateDevice(readerId, {
+						device_mode: isActive
 					});
-				}
-			});
-		});
-	}
-	$().ready(() => {
-		//Save Device 
-		$("#dev_save").click(addDevice);
-		//Device Token update
-		$(document).on('click', '.dev_up_token', (event) => {
-			if (confirm("Möchtest du wirklich einen neuen Token erzeugen?")) {
-				let id = $(event.currentTarget).data("id");
-				updateDeviceToken(id);
-			}
-		});
 
-		//Device Mode
-		$(document).on('change', '.mode_sel', (event) => {
-			if (confirm("Möchtest du wirklich den Modus umschalten?")) {
-				let id = $(event.currentTarget).data("id");
-				let device_mode = $(event.currentTarget).prop('checked');
-				updateDevice(id, {
-					device_mode: device_mode //($('input[name="mode_' + id + '"]:checked').val() == 1)
+					// Führe deine Funktion aus
+					console.log(`Leser ${readerId} Betriebsmodus geändert zu: ${isActive}`);
 				});
-			}
-		});
-
-		let modeSelectId = -1;
-		$.addTemplateFormatter({
-			modeSelect: function(value, template) {
-				switch (modeSelectId) {
-					case -1:
-						modeSelectId = value;
-						return value;
-					default:
-						let html = "<input type=\"checkbox\" class=\"mode_sel\" data-id=\"" + modeSelectId + "\" data-toggle=\"toggle\" " + (value == 1 ? "checked" : "") + ">";
-						modeSelectId = -1;
-						return html;
-				}
-			},
-			editButtons: function(value, template) {
-				return "<button type=\"button\" class=\"btn btn-success\" data-bs-toggle=\"modal\" data-bs-target=\"#new-device\" onClick=\"editDevice('" + value + "')\" title=\"Edit this device\"><span class=\"fa fa-pencil\"></span></button>" +
-					"<button type=\"button\" class=\"btn btn-danger\" onClick=\"deleteDevice('" + value + "')\" title=\"Delete this device\"><span class=\"fa fa-trash\"></span></button>";
-			}
-		});
-		loadDevices(true);
-		setInterval(() => {
-			loadDevices();
-		}, 5000);
-	});
-</script>
+			});
+		</script>
+	</div>
+</section>
 <?php
 $html = ob_get_clean();
 include "template/index.phtml"; ?>

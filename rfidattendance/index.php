@@ -12,14 +12,16 @@ $title = "Benutzer";
 $css_extra = "css/Users.css";
 ob_start();
 ?>
-<section>
-  <h1>Nutzerliste</h1>
+
+<section class="my-5">
+  <h2>Nutzerliste</h2>
   <!--User table-->
-  <div class="table-responsive" style="max-height: 400px;">
-    <table class="table">
+  <div class="table-responsive">
+    <table id="user_list">
       <thead class="table-primary">
         <tr>
-          <th>ID | Name</th>
+          <th>ID</th>
+          <th> Name</th>
           <th>Serial Number</th>
           <th>Gender</th>
           <th>Card UID</th>
@@ -27,15 +29,43 @@ ob_start();
           <th>Device</th>
         </tr>
       </thead>
-      <tbody id="user_list">
+      <tbody>
       </tbody>
     </table>
   </div>
 </section>
+
 <script>
-  $().ready(() => {
-    $.getJSON("user_list.php", (data_users) => {
-      $("#user_list").loadTemplate("template/user_table.html", data_users);
+  $(document).ready(function() {
+    let table = new DataTable('#user_list', {
+      layout: {
+        topStart: {
+          // buttons: ['copyHtml5', 'excelHtml5', 'csvHtml5', 'pdfHtml5']
+        }
+      },
+      ajax: 'user_list.php',
+      columns: [{
+          data: 'id'
+        },
+        {
+          data: 'username'
+        },
+        {
+          data: 'serialnumber'
+        },
+        {
+          data: 'gender'
+        },
+        {
+          data: 'card_uid'
+        },
+        {
+          data: 'user_date'
+        },
+        {
+          data: 'device_dep'
+        }
+      ]
     });
   });
 </script>

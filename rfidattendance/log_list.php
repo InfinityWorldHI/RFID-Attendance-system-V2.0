@@ -64,7 +64,8 @@ if (isset($_POST)) {
     FILTER_VALIDATE_REGEXP,
     [
       'options' => [
-        'regexp' => '/\A[[:xdigit:]]{8,32}\z/', "default" => 0
+        'regexp' => '/\A[[:xdigit:]]{8,32}\z/',
+        "default" => 0
       ]
     ]
   );
@@ -77,7 +78,8 @@ if (isset($_POST)) {
     FILTER_VALIDATE_REGEXP,
     [
       'options' => [
-        'regexp' => '/\A[[:xdigit:]]{16}\z/', "default" => 0
+        'regexp' => '/\A[[:xdigit:]]{16}\z/',
+        "default" => 0
       ]
     ]
   );
@@ -100,30 +102,8 @@ if (isset($_POST)) {
   }
 
   //adjust output format
-  switch ($request->output) {
-    case "csv":
-      header('Content-Type: text/csv');
-      header('Content-Disposition: attachment; filename=User_Log' . $Start_date . '.csv');
-      $out = fopen('php://output', 'w');
-      fputcsv($out, [
-        "ID",
-        "Name",
-        "Serial Number",
-        "Card UID",
-        "Device ID",
-        "Device Dep",
-        "Date log",
-        "Time In",
-        "Time Out"
-      ], ";", "\"");
-      foreach ($logs as $log) {
-        fputcsv($out, $log->getData(), ";", "\"");
-      }
-      fclose($out);
-      break;
-    case "json":
-    default:
-      header('Content-Type: application/json');
-      echo json_encode($logs);
-  }
+  header('Content-Type: application/json');
+  $document = new stdClass();
+  $document->data = $logs;
+  echo json_encode($document);
 }

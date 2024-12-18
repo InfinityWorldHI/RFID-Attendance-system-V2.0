@@ -8,7 +8,7 @@ if (isset($_POST['login'])) {
   $Admin_EMail = filter_input(INPUT_POST, "email", FILTER_VALIDATE_EMAIL);
   $Admin = getAdminByEmail($Admin_EMail);
   if (
-    !is_null($Admin) && 
+    !is_null($Admin) &&
     password_verify($_POST['pwd'], $Admin->admin_pwd) === true
   ) {
     $_SESSION['Admin-name'] = $Admin->admin_name;
@@ -21,26 +21,23 @@ if (isset($_POST['login'])) {
 
 //Output Stage
 $title = "Login";
-$css_extra = "css/Users.css";
+$css_extra[] = "css/Users.css";
+$css_extra[] = "css/login.css";
 ob_start();
 ?>
-<h1 class="">Bitte einloggen</h1>
-
-<!-- Log In -->
-<section>
-  <div>
-    <div class="login-page">
-      <div class="form">
-        <?php if(isset($messages) && count($messages)) foreach ($messages as $entry) {
-          echo "<div class=\"alert alert-" . $entry['mode'] . "\">" . $entry['message'] . "</div>";
-        }?>
-        <form class="login-form" method="post" enctype="multipart/form-data">
-          <input type="email" name="email" id="email" placeholder="E-Mail..." required />
-          <input type="password" name="pwd" id="pwd" placeholder="Password" required />
-          <button type="submit" name="login" id="login">login</button>
-          <p class="message">Passwort vergessen? <a href="PasswordReset.php">Passwort zurücksetzen</a></p>
-        </form>
-      </div>
+<section id="login" class="my-5">
+  <h2>Bitte einloggen</h2>
+  <div class="login-page">
+    <div class="form">
+      <?php if (isset($messages) && count($messages)) foreach ($messages as $entry) {
+        echo "<div class=\"alert alert-" . $entry['mode'] . "\">" . $entry['message'] . "</div>";
+      } ?>
+      <form class="login-form" method="post" enctype="multipart/form-data">
+        <input type="email" name="email" id="email" placeholder="E-Mail..." required />
+        <input type="password" name="pwd" id="pwd" placeholder="Password" required />
+        <button type="submit" name="login" id="login">login</button>
+        <p class="message">Passwort vergessen? <a href="PasswordReset.php">Passwort zurücksetzen</a></p>
+      </form>
     </div>
   </div>
 </section>

@@ -121,8 +121,8 @@ header, main {
   }
 }	
 thead th {background-color: #1e2749ff;}
-tbody tr:nth-child(even){background-color: #273469ff;}
-tbody tr:nth-child(odd){background-color: #1e2749ff;}
+tbody tr:nth-child(even){background-color: #273469ff !important;}
+tbody tr:nth-child(odd){background-color: #1e2749ff !important;}
 
 tbody tr:hover {opacity: 0.8;}
 

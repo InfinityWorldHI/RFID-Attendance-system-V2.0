@@ -15,7 +15,7 @@ if(isset($_POST)){
     $request = json_decode(file_get_contents('php://input'));
     switch($request->method){
         case "select":
-            $user = selectUserByCardId($request->data->card_id);
+            $user = getUserById($request->data->id);
             if(!is_null($user)){
                 echo json_encode($user);
                 return;
