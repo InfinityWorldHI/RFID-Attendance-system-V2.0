@@ -1,139 +1,208 @@
-<?php
+<?php  
 //Connect to database
 require 'connectDB.php';
-include "./google-calendar-api.php";
-$cAPI = new GoogleCalendarApi($config["google"]["clientId"], $config["google"]["clientSecret"], $config["google"]);
+date_default_timezone_set('Asia/Damascus');
 $d = date("Y-m-d");
-$t = date("H:i:s");
+$t = date("H:i:sa");
 
-$device_uid = filter_input(INPUT_GET, "device_token",  FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/\A[[:xdigit:]]{16}\z/', 'default' => 0]]);
-$card_uid = filter_input(INPUT_GET, "card_uid",  FILTER_VALIDATE_REGEXP, ['options' => ['regexp' => '/\A[[:xdigit:]]{8,32}\z/', 'default' => 0]]);
+if (isset($_GET['card_uid']) && isset($_GET['device_token'])) {
+    
+    $card_uid = $_GET['card_uid'];
+    $device_uid = $_GET['device_token'];
 
-function error(string $message)
-{
-    http_response_code(503);
-    echo $message;
-    exit;
-}
-
-//Check given Data
-if (!$card_uid || !$device_uid) {
-    error("Error: Ungueltige Anfrage");
-}
-//search db for device
-$device = getDeviceByToken($device_uid);
-if (is_null($device)) {
-    error("Error: Gerät nicht gefunden");
-}
-
-//check device mode
-switch ($device->device_mode) {
-    case DeviceObject::DEVICE_MODE_TIME: //CheckinOut
-        //search db for user
-        $user = getUserByCardId($card_uid);
-        if (is_null($user)) {
-            error("Error: Nutzer nicht gefunden!");
-        }
-        //*****************************************************
-        //An existed Card has been detected for Login or Logout
-        if ($user->add_card != 1) {
-            error("Error: Nicht registriert!");
-        }
-        //in correct department or allowed for all ?
-        if ($user->device_dep == $device->device_dep || $user->device_dep == 'All') {
-            //Already Checked in ?
-            $Log = getLogByCheckinDate($d, $user->card_uid);
-            if (!is_null($Log)) {
-                //*****************************************************
-                //Logout
-                if (!empty($Log->calendarEventId)) {
-                    // Update event on primary calendar
-                    $cAPI->UpdateCalendarEvent(
-                        $Log->calendarEventId,
-                        $user->calendarId,
-                        $user->username . " Arbeitszeit",
-                        false,
-                        [
-                            "start_time" => (new DateTime($Log->checkindate . " " . $Log->timein))->format(\DateTime::RFC3339),
-                            "end_time" => (new DateTime())->format(\DateTime::RFC3339)
-                        ],
-                        $config["timezone"]
-                    );
+    $sql = "SELECT * FROM devices WHERE device_uid=?";
+    $result = mysqli_stmt_init($conn);
+    if (!mysqli_stmt_prepare($result, $sql)) {
+        echo "SQL_Error_Select_device";
+        exit();
+    }
+    else{
+        mysqli_stmt_bind_param($result, "s", $device_uid);
+        mysqli_stmt_execute($result);
+        $resultl = mysqli_stmt_get_result($result);
+        if ($row = mysqli_fetch_assoc($resultl)){
+            $device_mode = $row['device_mode'];
+            $device_dep = $row['device_dep'];
+            if ($device_mode == 1) {
+                $sql = "SELECT * FROM users WHERE card_uid=?";
+                $result = mysqli_stmt_init($conn);
+                if (!mysqli_stmt_prepare($result, $sql)) {
+                    echo "SQL_Error_Select_card";
+                    exit();
                 }
-                $Log->timeout = $t;
-                $Log->card_out = 1;
-                if ($Log->save()) {
-                    echo "logout" . $user->username;
-                } else {
-                    error("Error: SQL Checkout Fehler");
-                }
-            } else {
-                //*****************************************************
-                //Login
-                if (!empty($user->calendarId)) {
-                    $eventId = $cAPI->CreateCalendarEvent(
-                        $user->calendarId,
-                        $user->username . "Arbeitszeit",
-                        false,
-                        false,
-                        false,
-                        [
-                            "start_time" => (new DateTime())->format(\DateTime::RFC3339),
-                            "end_time" => (new DateTime())->modify("+5 minutes")->format(\DateTime::RFC3339)
-                        ],
-                        $config["timezone"]
-                    );
-                }
-                $Log = new UserLogObject([
-                    "username" => $user->username,
-                    "serialnumber" => $user->serialnumber,
-                    "card_uid" => $user->card_uid,
-                    "device_uid" => $device->device_uid,
-                    "device_dep" => $device->device_dep,
-                    "checkindate" => $d,
-                    "timein" => $t,
-                    "timeout" => 0,
-                    "calendarEventId" => $eventId ?? null
-                ], $conn);
+                else{
+                    mysqli_stmt_bind_param($result, "s", $card_uid);
+                    mysqli_stmt_execute($result);
+                    $resultl = mysqli_stmt_get_result($result);
+                    if ($row = mysqli_fetch_assoc($resultl)){
+                        //*****************************************************
+                        //An existed Card has been detected for Login or Logout
+                        if ($row['add_card'] == 1){
+                        if ($row['device_uid'] == $device_uid || $row['device_uid'] == 0){
+                                $Uname = $row['username'];
+                                $Number = $row['serialnumber'];
+                                $sql = "SELECT * FROM users_logs WHERE card_uid=? AND checkindate=? AND card_out=0";
+                                $result = mysqli_stmt_init($conn);
+                                if (!mysqli_stmt_prepare($result, $sql)) {
+                                    echo "SQL_Error_Select_logs";
+                                    exit();
+                                }
+                                else{
+                                    mysqli_stmt_bind_param($result, "ss", $card_uid, $d);
+                                    mysqli_stmt_execute($result);
+                                    $resultl = mysqli_stmt_get_result($result);
+                                    //*****************************************************
+                                    //Login
+                                    if (!$row = mysqli_fetch_assoc($resultl)){
 
-                if ($Log->insert()) {
-                    echo "login" . $user->username;
-                } else {
-                    error("Error: SQL Checkin Fehler");
+                                        $sql = "INSERT INTO users_logs (username, serialnumber, card_uid, device_uid, device_dep, checkindate, timein, timeout) VALUES (? ,?, ?, ?, ?, ?, ?, ?)";
+                                        $result = mysqli_stmt_init($conn);
+                                        if (!mysqli_stmt_prepare($result, $sql)) {
+                                            echo "SQL_Error_Select_login1";
+                                            exit();
+                                        }
+                                        else{
+                                            $timeout = "00:00:00";
+                                            mysqli_stmt_bind_param($result, "sdssssss", $Uname, $Number, $card_uid, $device_uid, $device_dep, $d, $t, $timeout);
+                                            mysqli_stmt_execute($result);
+
+                                            echo "login".$Uname;
+                                            exit();
+                                        }
+                                    }
+                                    //*****************************************************
+                                    //Logout
+                                    else{
+                                        $sql="UPDATE users_logs SET timeout=?, card_out=1 WHERE card_uid=? AND checkindate=? AND card_out=0";
+                                        $result = mysqli_stmt_init($conn);
+                                        if (!mysqli_stmt_prepare($result, $sql)) {
+                                            echo "SQL_Error_insert_logout1";
+                                            exit();
+                                        }
+                                        else{
+                                            mysqli_stmt_bind_param($result, "sss", $t, $card_uid, $d);
+                                            mysqli_stmt_execute($result);
+
+                                            echo "logout".$Uname;
+                                            exit();
+                                        }
+                                    }
+                                }
+                            }
+                            else {
+                                echo "Not Allowed!";
+                                exit();
+                            }
+                        }
+                        else if ($row['add_card'] == 0){
+                            echo "Not registerd!";
+                            exit();
+                        }
+                    }
+                    else{
+                        echo "Not found!";
+                        exit();
+                    }
                 }
             }
-        } else {
-            error("Error: Hier nicht erlaubt");
-        }
-        break;
-    case DeviceObject::DEVICE_MODE_LEARN: //Learn
-        unselectUsers();
+            else if ($device_mode == 0) {
+                //New Card has been added
+                $sql = "SELECT * FROM users WHERE card_uid=?";
+                $result = mysqli_stmt_init($conn);
+                if (!mysqli_stmt_prepare($result, $sql)) {
+                    echo "SQL_Error_Select_card";
+                    exit();
+                }
+                else{
+                    mysqli_stmt_bind_param($result, "s", $card_uid);
+                    mysqli_stmt_execute($result);
+                    $resultl = mysqli_stmt_get_result($result);
+                    //The Card is available
+                    if ($row = mysqli_fetch_assoc($resultl)){
+                        $sql = "SELECT card_select FROM users WHERE card_select=1";
+                        $result = mysqli_stmt_init($conn);
+                        if (!mysqli_stmt_prepare($result, $sql)) {
+                            echo "SQL_Error_Select";
+                            exit();
+                        }
+                        else{
+                            mysqli_stmt_execute($result);
+                            $resultl = mysqli_stmt_get_result($result);
+                            
+                            if ($row = mysqli_fetch_assoc($resultl)) {
+                                $sql="UPDATE users SET card_select=0";
+                                $result = mysqli_stmt_init($conn);
+                                if (!mysqli_stmt_prepare($result, $sql)) {
+                                    echo "SQL_Error_insert";
+                                    exit();
+                                }
+                                else{
+                                    mysqli_stmt_execute($result);
 
-        //New Card should be been added if needed so search for it
-        if (selectUserByCardId($card_uid)) {
-            echo "available";
-        } else {
-            //The Card is new
-            $User = new UserObject([
-                "card_uid" => $card_uid,
-                "card_select" => 1,
-                "device_uid" => $device->device_uid,
-                "device_dep" => $device->device_dep,
-                "user_date" => $d
-            ], $conn);
-            if ($User->insert()) {
-                echo "successful";
+                                    $sql="UPDATE users SET card_select=1 WHERE card_uid=?";
+                                    $result = mysqli_stmt_init($conn);
+                                    if (!mysqli_stmt_prepare($result, $sql)) {
+                                        echo "SQL_Error_insert_An_available_card";
+                                        exit();
+                                    }
+                                    else{
+                                        mysqli_stmt_bind_param($result, "s", $card_uid);
+                                        mysqli_stmt_execute($result);
+
+                                        echo "available";
+                                        exit();
+                                    }
+                                }
+                            }
+                            else{
+                                $sql="UPDATE users SET card_select=1 WHERE card_uid=?";
+                                $result = mysqli_stmt_init($conn);
+                                if (!mysqli_stmt_prepare($result, $sql)) {
+                                    echo "SQL_Error_insert_An_available_card";
+                                    exit();
+                                }
+                                else{
+                                    mysqli_stmt_bind_param($result, "s", $card_uid);
+                                    mysqli_stmt_execute($result);
+
+                                    echo "available";
+                                    exit();
+                                }
+                            }
+                        }
+                    }
+                    //The Card is new
+                    else{
+                        $sql="UPDATE users SET card_select=0";
+                        $result = mysqli_stmt_init($conn);
+                        if (!mysqli_stmt_prepare($result, $sql)) {
+                            echo "SQL_Error_insert";
+                            exit();
+                        }
+                        else{
+                            mysqli_stmt_execute($result);
+                            $sql = "INSERT INTO users (card_uid, card_select, device_uid, device_dep, user_date) VALUES (?, 1, ?, ?, CURDATE())";
+                            $result = mysqli_stmt_init($conn);
+                            if (!mysqli_stmt_prepare($result, $sql)) {
+                                echo "SQL_Error_Select_add";
+                                exit();
+                            }
+                            else{
+                                mysqli_stmt_bind_param($result, "sss", $card_uid, $device_uid, $device_dep );
+                                mysqli_stmt_execute($result);
+
+                                echo "succesful";
+                                exit();
+                            }
+                        }
+                    }
+                }    
             }
         }
-        break;
-    default:
-        error("Error: Unbekannter Modus");
+        else{
+            echo "Invalid Device!";
+            exit();
+        }
+    }          
 }
-
-if ($cAPI->tokenUpdated) {
-    $config["google"] = $cAPI->getConfig();
-    file_put_contents(
-        "./config.php",
-        "<?php\n\rreturn " . var_export($config, true) . ";\n?>"
-    );
-}
+?>

@@ -15,7 +15,7 @@ th{
   color: #000;
   text-transform: uppercase;
   border: none !important;
-  background-color: rgba(10, 10, 10, 0.3) !important;
+  background-color: rgba(255,255,255,0.3) !important;
 }
 td{
   padding: 15px;
@@ -57,27 +57,27 @@ section {
   padding: 8px;
   color: #FFF;
   margin: 0 auto;
-  background: rgba(10, 10, 10, 0.3);;
+  background: #388994;
   font-size: 15px;
   text-align: center;
   font-style: normal;
   width: 100%;
-  border: 1px solid rgba(10, 10, 10, 0.3);
+  border: 1px solid #388994;
   border-width: 1px 1px 3px;
   margin-bottom: 10px;
 }
 .modal-content input[type="submit"]:hover,
 .form-style-5 button:hover {
-  background: #30343fff;
+  background: #317881;
 }
 .panel {
-  border-color: #30343fff !important;
+  border-color: #388994 !important;
 }
 .panel-heading {
-  background-color: rgba(255,255,255,0.1) !important;
+  background-color: #388994 !important;
 }
 .panel-body {
-  background-color: rgba(255,255,255,0.1) !important;
+  background-color: #46abb9 !important;
 }
 
 .slideInRight {
