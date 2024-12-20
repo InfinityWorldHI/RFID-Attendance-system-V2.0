@@ -36,7 +36,7 @@ section {
   background-color: #46abb9 !important;
 }
 
-.mode_select {
+/* .mode_select {
   display: block;
   position: relative;
 }
@@ -47,25 +47,14 @@ section {
   width: 1px;
   border: 0;
   overflow: hidden;
-}
+} */
 
-.mode_select label {
+.btn-mode_select_learn {
   background-color: #46abb9;
-  color: #000;
-  font-size: 14px;
-  line-height: 1;
-  text-align: center;
-  padding: 6px 12px;
-  margin-right: -1px;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  transition: all 0.1s ease-in-out;
+  color: #fff;
 }
 
-.mode_select label:hover {
-  cursor: pointer;
-}
-
-.mode_select input:checked + label {
+.btn-mode_select_read {
   background-color: #5cb85c;
   color: #fff;
   box-shadow: none;
